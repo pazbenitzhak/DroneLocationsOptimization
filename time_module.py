@@ -21,6 +21,10 @@ class time_module:
     def setTimeInterval(self,delta_t):
         interval_size = delta_t
 
+    def getTimeInterval(self):
+        return self.interval_size
+
+#simple test
 t = time_module(0,1)
 t.updateTime()
 t.updateTime()
