@@ -1,6 +1,5 @@
 class time_module:
     current_time = 0
-
     interval_size = 1
 
     def __init__(self,curr_time,interv_size):
@@ -14,22 +13,14 @@ class time_module:
         self.current_time+=self.interval_size
         return
 
-    def setTime(self):
-        self.current_time = 0
+    def setTime(self,t):
+        self.current_time = t
         return
 
     def setTimeInterval(self,delta_t):
-        interval_size = delta_t
+        self.interval_size = delta_t
 
     def getTimeInterval(self):
         return self.interval_size
 
-#simple test
-t = time_module(0,1)
-t.updateTime()
-t.updateTime()
-t.updateTime()
-t.updateTime()
-t.updateTime()
-print(t.getTime())
-
+#to run it need python time_module.py

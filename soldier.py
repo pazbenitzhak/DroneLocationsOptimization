@@ -1,43 +1,73 @@
 import random
-from unit_module import unit_module
-from time_module import time_module
+import unit_module
+import time_module
 import numpy as np
-class soldier:
-    x_loc = 0
-    y_loc = 0
-    user_bw = 0
-    user_equip_noise = 0 #db
 
-    def __init__(self,x,y,bw, noise):
-        self.x_loc = x
-        self.y_loc=y
-        self.user_bw = bw
+class soldier:
+
+    def __init__(self,bw, noise,unit,max_dist_from_comm):
+        self.unit = unit
+        self.user_bw = bw #9 db in specification
         self.user_equip_noise = noise
+        self.x_loc, self.y_loc= self.placeSoldier(max_dist_from_comm)
 
     def getLocation(self):
         return self.x_loc, self.y_loc
 
-    def updateNewLocation(self): #random
-        avg_velocity = 1.388 #m/sec, i.e. 5km/h
-        velocity_deviation =  0.5 #chosen so the velocity ranges are between 0-9.5
-        angle_deviation = 1.18 # chosen so the direction ranges are between commander_dirc+-pi
+    def updateNewLocation(self,max_dist_from_comm,time): #random
+        avg_velocity =  unit_module.avg_vel #m/sec, i.e. 5km/h
+        velocity_deviation =  unit_module.vel_dev #chosen so the velocity ranges are between 0-9.5 km/h
+        #angle_deviation = 1.18 # chosen so the direction ranges are between commander_dirc+-pi
         velocity_val = random.gauss(avg_velocity,velocity_deviation)
-        velocity_direc = random.gauss(unit_module.getCommandDirec(),angle_deviation)
-        dist = velocity_val*time_module.getTimeInterval()
-        new_x = self.x_loc+dist*np.cos(velocity_direc)
-        new_y = self.y_loc+dist*np.sin(velocity_direc)
-        self.x_loc = int(new_x)
-        self.y_loc = int(new_y)
-        #TODO: check cases where new indices are out of bounds with the matrix
+        #velocity_direc = random.gauss(unit_module.getCommandDirec(),angle_deviation)
+        dist = velocity_val*time_module.time_module.getTimeInterval(time)
+        unit = self.getSoldierUnit()
+        block = unit_module.unit_module.getBlock(unit)
+        x_0,y_0 = self.getSoldierLocation()
+        comm_x, comm_y = unit_module.unit_module.getCommanderLoc(unit)
+        quarter = unit_module.calculateQuarter(comm_x, comm_y, x_0, y_0)
+        possible_locations = unit_module.findPossibleLocations(x_0,y_0,block,dist,quarter)
+        is_not_valid = 1
+        while(is_not_valid):
+            arr_len = len(possible_locations)
+            index = random.randint(0,arr_len-1)
+            new_loc = possible_locations[index] #tuple: x, y
+            if (new_loc[0]-comm_x)**2 + (new_loc[1]-comm_y)**2 <= max_dist_from_comm**2:
+                is_not_valid = 0
+            else:
+                possible_locations.remove(new_loc)
+        self.setNewLocation(new_loc[0],new_loc[1])
+        return new_loc[0], new_loc[1]
+
+    def placeSoldier(self,max_dist_from_comm):
+        block = unit_module.unit_module.getBlock(self.unit)
+        comm_x, comm_y = unit_module.unit_module.getCommanderLoc(self.unit)
+        soldiers_placements = []
+        for i in range(-max_dist_from_comm, max_dist_from_comm):
+            for j in range(-max_dist_from_comm, max_dist_from_comm):
+                if (0<=comm_x<5000 and 0<=comm_y<5000) and (i**2+j**2<=max_dist_from_comm**2) \
+                                                            and (comm_x+i, comm_y+j) in block:
+                    soldiers_placements.append((comm_x+i, comm_y+j))
+        placements_num = len(soldiers_placements)
+        index = random.randint(0,placements_num-1)
+        return soldiers_placements[index][0], soldiers_placements[index][1] #tuple: x, y
 
     def setNewLocation(self,x,y): #deterministic
         self.x_loc = x
         self.y_loc = y
         return
 
+    def getSoldierLocation(self):
+        return self.x_loc, self.y_loc
+
     def getSoldierBW(self):
         return self.user_bw
 
     def getSoldierEquipNoise(self):
         return self.user_equip_noise
+    
+    def getSoldierUnit(self):
+        return self.unit
+
+    
 
