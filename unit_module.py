@@ -23,7 +23,7 @@ class unit_module:
     def __init__(self, solds,surf):
         self.soldiers = solds
         #NPV: self.block = self.placeUnit(surf)
-        self.block = surface.surface.getBlocks(surf) #white_block matrix
+        self.block = surface.surface.getBlocks(surf) #white_block matrix - true/false
         self.white_block_indexes = surface.surface.getWhiteIndexes(surf)
         self.comm_x, self.comm_y = self.placeCommander(self.white_block_indexes)
 
@@ -154,19 +154,19 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
                 quarter = 4
         match quarter:
             case 1:
-                if (possible_locations_q_1>0):
+                if (len(possible_locations_q_1)>0):
                     possible_locations = possible_locations_q_1
                     break
             case 2:
-                if (possible_locations_q_2>0):
+                if (len(possible_locations_q_2)>0):
                     possible_locations = possible_locations_q_2
                     break
             case 3:
-                if (possible_locations_q_3>0):
+                if (len(possible_locations_q_3)>0):
                     possible_locations = possible_locations_q_3
                     break
             case 4: 
-                if (possible_locations_q_4>0):
+                if (len(possible_locations_q_4)>0):
                     possible_locations = possible_locations_q_4
                     break
     print("possible_locations: " +str(possible_locations))
@@ -174,8 +174,11 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
 
 
 def calculateQuarter(x_comm, y_comm, x_sold, y_sold):
-    slope = (y_comm-y_sold)/(x_comm-x_sold)
-    angle = np.arctan(slope)
+    if x_comm==x_sold: #avoid division by zero
+        angle = np.pi/2
+    else:
+        slope = (y_comm-y_sold)/(x_comm-x_sold)
+        angle = np.arctan(slope)
     if (0<=angle<=(np.pi/2)): #quarters 1, 3
         if x_comm>=x_sold:
             return 1

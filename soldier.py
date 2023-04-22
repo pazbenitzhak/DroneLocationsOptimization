@@ -46,7 +46,8 @@ class soldier:
         for i in range(-max_dist_from_comm, max_dist_from_comm):
             for j in range(-max_dist_from_comm, max_dist_from_comm):
                 if (0<=comm_x<5000 and 0<=comm_y<5000) and (i**2+j**2<=max_dist_from_comm**2) \
-                                                            and (comm_x+i, comm_y+j) in block:
+                                                            and block[comm_x+i, comm_y+j]:
+                    #NPV: if (x,y) in block
                     soldiers_placements.append((comm_x+i, comm_y+j))
         placements_num = len(soldiers_placements)
         index = random.randint(0,placements_num-1)

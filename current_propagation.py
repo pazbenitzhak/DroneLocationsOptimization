@@ -43,6 +43,8 @@ def nlos_path_loss(sold, drone, surf, freq):
     if phi>90:
         phi -= 90
     L_bf = 32.4 + 20*np.log10(dist/1000) + 20*np.log10(freq)
+    block_num = calcBlock(sold_loc)
+    dsm_blocks = surface.surface.getDSMBlocks(surf)
     L_rts = calc_Lrts(street_width, freq)
     L_msd = calc_Lmsd()
     if ((L_msd+L_rts)<=0):
@@ -64,3 +66,7 @@ def calc_Lori(phi):
         return 2.5+0.075*(phi-35)
     else: # 55<=phi<=90
         return 4-0.114*(phi-55)
+    
+def calcBlock(sold_loc):
+    x,y = sold_loc
+    #TODO: MODULO

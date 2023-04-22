@@ -32,6 +32,9 @@ class surface:
     
     def getWhiteIndexes(self):
         return self.white_block_indexes
+    
+    def getDSMBlocks(self):
+        return self.dsm_blocks
 
 def loadSurface(dtm_path,sold_th, drone_th):
     """dsm_dataset = rasterio.open(dsm_path)
@@ -46,7 +49,7 @@ def loadSurface(dtm_path,sold_th, drone_th):
     blocks_array = blocks.block.classifyRouteBlocks(cond)"""
     indices = np.where(dsm==0)
     # a list of list because there should be backwards compatibility
-    white_block_indexes = [list(zip(indices[0], indices[1]))] #there is only one block in the new DSM implementation
+    white_block_indexes = list(zip(indices[0], indices[1])) #NPV: there is only one block in the new DSM implementation
     white_block = (dsm==0)
     drone_map = (diffs<=drone_th).astype(int)
     drone_map_zeros = np.argwhere(drone_map==0)

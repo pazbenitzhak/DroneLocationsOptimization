@@ -20,6 +20,7 @@ soldier_bw = 10 #TODO: change it to a proper value
 noise = 15 #TODO: change it to a proper value
 max_dist_from_comm = 100 #m
 drone_bw = 20 #TODO: change it to a proper value
+ptx = 20
 
 def main():
     dtm_path, units_num, soldiers_in_unit_num, drones_num, end_time = sys.argv[1], sys.argv[2],\
@@ -29,11 +30,12 @@ def main():
     #init surface
     surface_obj = surface.surface(dtm_path, soldier_threshold, drone_threshold)
     #load img for simulation
-    orig_img = plt.imread("colorhillshade_dsm_1m_utm18_e_10_104.tif")
+    """orig_img = plt.imread("colorhillshade_dsm_1m_utm18_e_10_104.tif")
     orig_img = orig_img[0:5000,5000:]
     orig_img_write = np.copy(orig_img)
     orig_img_write[surface_obj.getDiffs()<=0.5] = [255,255,255] #white
-    orig_img_write[surface_obj.getDiffs()>0.5] = [0,0,0] #black
+    orig_img_write[surface_obj.getDiffs()>0.5] = [0,0,0] #black"""
+    orig_img_write = plt.imread("lines.png")
     #init units
     units = [unit_module.unit_module([], surface_obj) for i in range(int(units_num))]
     #init soldiers in units
@@ -50,7 +52,7 @@ def main():
     for i in range(int(drones_num)):
         unit_xy = unit_module.unit_module.getCommanderLoc(units[i])
         unit_x, unit_y = unit_xy
-        drones_list.append(drones.drone(unit_x, unit_y, drone_bw, [units[i]], surface_obj))
+        drones_list.append(drones.drone(unit_x, unit_y, drone_bw, [units[i]], surface_obj, ptx))
     while(time_module.time_module.getTime(time)<int(end_time)):
         #update soldiers
         copy_img = np.copy(orig_img_write)
