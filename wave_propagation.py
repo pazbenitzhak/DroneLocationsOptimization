@@ -20,7 +20,7 @@ def calc_SNR(sold, drone, surf, freq):
     if is_line_of_sight(sold, drone, surf):
         path_loss = curr_prop.los_path_loss(sold,drone,surf,freq)
     else:
-        path_loss = curr_prop.nlos_path_loss()
+        path_loss = curr_prop.nlos_path_loss(sold,drone,surf,freq)
     s_path = (1/total_soldiers_served)*ptx*10**(-path_loss/10) #bu/B = 1/total_soldiers_served
     return s_path/Nu
 
