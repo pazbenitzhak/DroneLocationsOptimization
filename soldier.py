@@ -3,12 +3,15 @@ import unit_module
 import time_module
 import numpy as np
 
+
+#specification: https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2507
+
 class soldier:
 
     def __init__(self,bw, noise,unit,max_dist_from_comm):
         self.unit = unit
-        self.user_bw = bw #9 db in specification
-        self.user_equip_noise = noise
+        self.user_bw = bw 
+        self.user_equip_noise = noise #9 db in specification
         self.x_loc, self.y_loc= self.placeSoldier(max_dist_from_comm)
 
     def getLocation(self):

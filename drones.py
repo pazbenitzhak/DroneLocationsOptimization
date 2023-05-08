@@ -8,18 +8,20 @@ drone_height = 50 #m
 class drone:
     x_loc = 0
     y_loc = 0
-    bandwidth = 0 #10MHZ in specification
+    bandwidth = 0 #10MHZ in specification (article), in Hz
     height = 0
-    ptx = 0 # power of drone broadcast towards users
+    ptx = 0 # power of drone broadcast towards users, Watt
     connected_units = []
+    frequency = 0 #in Hz
 
-    def __init__(self,x_unit,y_unit,bw, units,surface_object,ptx):
+    def __init__(self,x_unit,y_unit,bw,units,surface_object,ptx,freq):
         self.x_loc, self.y_loc= self.placeDrone(x_unit, y_unit,surface_object)
-        self.user_bandwidth = bw
+        self.bandwidth = bw
         self.height = drone_height+ surface.surface.getDSM(surface_object)[x_unit,y_unit]
         #MERAV: maybe 50 above dtm and need to avoid collusions with buildings
         self.connected_units = units
         self.ptx = ptx
+        self.frequency = freq
 
     def getLocation(self):
         return self.x_loc, self.y_loc
@@ -32,6 +34,9 @@ class drone:
 
     def getHeight(self):
         return self.height
+    
+    def getFreq(self):
+        return self.frequency
 
     def placeDrone(self,comm_x,comm_y,surface_object):
         drone_map = surface.surface.getDroneMap(surface_object)
@@ -68,7 +73,7 @@ class drone:
         num = 0
         units = self.getUnits()
         for unit in units:
-            num += unit_module.unit.getSoldiersNum(unit)
+            num += unit_module.unit_module.getSoldiersNum(unit)
         return num
 
     def getPtx(self):

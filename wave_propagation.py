@@ -4,6 +4,7 @@ import drones as drones
 import unit_module as unit_module
 import current_propagation as curr_prop
 import surface as surface
+import decimal
 
 # calculates the SNR between a drone and a soldier
 # uses current_propagation module in order to calculate path loss
@@ -11,23 +12,37 @@ import surface as surface
 
 avg_soldier_height = 1.5 #carries equipment on the back
 
-def calc_SNR(sold, drone, surf, freq):
-    user_equip_noise = soldier.soldier.getSoldierEquipNoise(sold)
+def calc_SNR(sold, drone, surf,drone_pos_loc):
+    user_equip_noise = soldier.soldier.getSoldierEquipNoise(sold) #in DB
     total_soldiers_served = drones.drone.getTotalSoldServed(drone)
-    bu = drones.drone.getBandwidth(drone)/total_soldiers_served
-    Nu = 10**(-3+(-174+user_equip_noise)/10)*bu
-    ptx = drones.drone.getPtx(drone)
+    bu = drones.drone.getBandwidth(drone)/total_soldiers_served #Hz
+    Nu = bu*10**(-3)
+    print("Nu1: " + str(Nu))
+    exp = 10**(5+(-174+user_equip_noise)/10)
+    print("exp: "+str(exp))
+    Nu = Nu * exp
+    print("Nu2: " + str(Nu))
+    Nu = Nu/(10**5)
+    print("Nu3: " + str(Nu))
+    ptx = drones.drone.getPtx(drone) #Watt
+    freq = drones.drone.getFreq(drone) #in Hz
     if is_line_of_sight(sold, drone, surf):
-        path_loss = curr_prop.los_path_loss(sold,drone,surf,freq)
+        print("in LOS")
+        path_loss = curr_prop.los_path_loss(sold,drone,surf,freq,drone_pos_loc)
     else:
-        path_loss = curr_prop.nlos_path_loss(sold,drone,surf,freq)
+        print("in NLOS")
+        path_loss = curr_prop.nlos_path_loss(sold,drone,surf,freq,drone_pos_loc)
+    print("path loss: " +str(path_loss))
     s_path = (1/total_soldiers_served)*ptx*10**(-path_loss/10) #bu/B = 1/total_soldiers_served
+    print("s_path: " +str(s_path))
+    print("Nu: " +str(Nu))
     return s_path/Nu
 
 
 
 def is_line_of_sight(sold, drone, surf):
-    x_drone, y_drone, z_drone = drones.drone.getLocation(drone), drones.drone.getHeight(drone)
+    x_drone, y_drone = drones.drone.getLocation(drone)
+    z_drone =  drones.drone.getHeight(drone)
     x_sold, y_sold = soldier.soldier.getSoldierLocation(sold)
     z_sold = avg_soldier_height+surface.surface.getDSM(surf)[x_sold, y_sold]
     #DSM & DTM arecd  almost equal, DSM is slightly higher. We chose DSM for optimizations reasons

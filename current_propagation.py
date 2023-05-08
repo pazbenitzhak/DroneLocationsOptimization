@@ -15,25 +15,25 @@ import numpy as np
 
 #here f in Mhz
 
-c = 3*10**8 # speed of light
+c = 3*10**8 # speed of light, m/s
 upsilon = 0.0417
 chi = 0.1
 
-def los_path_loss(sold, drone, surf, freq):
+def los_path_loss(sold, drone, surf, freq, drone_pos_loc):
     #distance between soldier and drone
     #hb - height of drone
     #hm - height of soldier
     #lambda - frequency of drone
     #TODO: figure out what the frequency should be - MERAV ANSWER: cellular frequency
     #we assume the wave velocity is at the speed of light
-    drone_loc = drones.drone.getLocation(drone)
+    drone_loc = drone_pos_loc
     hb = drones.drone.getHeight(drone)
     sold_loc = soldier.soldier.getLocation(sold)
     hm = surface.surface.getDSM(surf)[sold_loc]
     vertical_dist = np.square(hb-hm)
     horizontal_dist = np.square(drone_loc[0]-sold_loc[0])+np.square(drone_loc[1]-sold_loc[1])
     dist = np.sqrt(vertical_dist+horizontal_dist)
-    wave_length = c/freq
+    wave_length = c/freq #m
     rbp = (4*hb*hm)/wave_length
     lbp = np.abs(20*np.log10((wave_length**2)/(8*np.pi*hb*hm)))
     if (dist<=rbp):
@@ -42,8 +42,8 @@ def los_path_loss(sold, drone, surf, freq):
         coeff = 40
     return lbp+6+coeff*np.log10(dist/rbp)
 
-def nlos_path_loss(sold, drone, surf, freq):
-    drone_loc = drones.drone.getLocation(drone)
+def nlos_path_loss(sold, drone, surf, freq,drone_pos_loc):
+    drone_loc = drone_pos_loc
     hb = drones.drone.getHeight(drone)
     sold_loc = soldier.soldier.getLocation(sold)
     hm = surface.surface.getDSM(surf)[sold_loc]+1.5
@@ -55,7 +55,7 @@ def nlos_path_loss(sold, drone, surf, freq):
     phi = np.arctan2(np.abs(drone_loc[1]-sold_loc[1]),np.abs(drone_loc[0]-sold_loc[0]))
     if phi>90:
         phi -= 90
-    L_bf = 32.4 + 20*np.log10(dist/1000) + 20*np.log10(freq)
+    L_bf = 32.4 + 20*np.log10(dist/1000) + 20*np.log10((freq/(10**6)))
     block_num = calcBlock(sold_loc)
     dsm_blocks = surface.surface.getDSMBlocks(surf)
     lines = surface.surface.getDSMLines(surf)
@@ -70,32 +70,39 @@ def nlos_path_loss(sold, drone, surf, freq):
     ds = (wave_length*dist**2)/(del_hb**2)
     L_rts = calc_Lrts(street_width, freq, del_hm, phi)
     L_msd = calc_Lmsd(dist,horizontal_dist,ds,del_hb,wave_length,hb,hr,freq,b)
+    print("lrts: " +str(L_rts)+"   lmsd:  " + str(L_msd))
     if ((L_msd+L_rts)<=0):
         return L_bf
     return L_bf+L_rts+L_msd
 
 def calc_Lrts(w,f,del_hm,phi):
     L_ori = calc_Lori(phi)
+    f = f/(10**6) #convert to MHz
     return -8.2-10*np.log10(w)+10*np.log10(f)+20*np.log10(del_hm)+L_ori
 
 def calc_Lmsd(d,l,ds,del_hb,lamda,hb,hr,f,b):
     dbp = np.abs(del_hb)*np.sqrt(l/lamda)
-    l_upp = calc_L1_msd(dbp,hb,hr,del_hb,d,f,b) #this is L1_msd_dbp
+    l_upp = calc_L1_msd(dbp,hb,hr,del_hb,f,b) #this is L1_msd_dbp
     l_low = calc_L2_msd(dbp,del_hb,b,lamda,f,hb,hr) #this is L2_msd_dbp
     dh_bp = l_upp-l_low
     zeta = (l_upp-l_low)*upsilon
     l_mid = (l_upp+l_low)/2
-    L1_msd_d = calc_L1_msd(d,hb,hr,del_hb,d,f,b)
+    L1_msd_d = calc_L1_msd(d,hb,hr,del_hb,f,b)
     L2_msd_d = calc_L2_msd(d,del_hb,b,lamda,f,hb,hr)
     if (l>ds and dh_bp>0):
+        print("lmsd = " + str(-np.tanh((np.log10(d)-np.log10(dbp))/chi)*(L1_msd_d-l_mid)+l_mid))
         return -np.tanh((np.log10(d)-np.log10(dbp))/chi)*(L1_msd_d-l_mid)+l_mid
     if (l<=ds and dh_bp>0):
+        print("lmsd = " + str(np.tanh((np.log10(d)-np.log10(dbp))/chi)*(L2_msd_d-l_mid)+l_mid))
         return np.tanh((np.log10(d)-np.log10(dbp))/chi)*(L2_msd_d-l_mid)+l_mid
     if (dh_bp==0):
+        print("lmsd = " + str(L2_msd_d))
         return L2_msd_d
     if (l>ds and dh_bp<0):
+        print("lmsd = " + str(L1_msd_d-np.tanh((np.log10(d)-np.log10(dbp))/zeta)*(l_upp-l_mid)-l_upp+l_mid))
         return L1_msd_d-np.tanh((np.log10(d)-np.log10(dbp))/zeta)*(l_upp-l_mid)-l_upp+l_mid
     if (l<=ds and dh_bp<0):
+        print("lmsd = " + str(L2_msd_d+np.tanh((np.log10(d)-np.log10(dbp))/zeta)*(l_mid-l_low)+l_mid-l_low))
         return L2_msd_d+np.tanh((np.log10(d)-np.log10(dbp))/zeta)*(l_mid-l_low)+l_mid-l_low
 
 
@@ -130,8 +137,8 @@ def find_street_width(sold_loc,block_num, dsm_blocks,lines,img):
         # the soldier is inside the 'complex'
         return gap_size
     # the soldier is OUTSIDE the 'complex' in some manner
-    x_rounded_to_100_multiplier = np.ceil(x/100.0)*100
-    y_rounded_to_100_multiplier = np.ceil(x/100.0)*100
+    x_rounded_to_100_multiplier = int(np.ceil(x/100.0)*100)
+    y_rounded_to_100_multiplier = int(np.ceil(x/100.0)*100)
     #special case
     if (x_rounded_to_100_multiplier==5000 or y_rounded_to_100_multiplier==5000):
         return block_len-border
@@ -167,12 +174,15 @@ def find_street_width(sold_loc,block_num, dsm_blocks,lines,img):
 
 
 def in_line(x, y, img):
-    if img[x,y]==254 or img[x,y]==253:
+    #we know that all triplets in the dsm_image contain the same value
+    #so we can just slice on the first index
+    print("(x,y) = " +str(x) +str(y))
+    if img[x,y,0]==254 or img[x,y,0]==253:
         return True
     return False
 
 def find_line(x, y, img):
-    if img[x,y]==254:
+    if img[x,y,0]==254:
         # according to range
         line = y//500
         return line
@@ -247,13 +257,14 @@ def calc_b(sold_loc, block_num, dsm_blocks):
         return (gap_size+rect_size+right_side)/2
     #need to average the 3 of them and the down right one
     down_right_gray_value, down_right_rect_size, down_right_gap_size = dsm_blocks[block_num+51]
-    return (gap_size+rect_size+right_side+down_side+down_right_rect_size, down_right_gap_size)/4
+    return (gap_size+rect_size+right_side+down_side+down_right_rect_size+down_right_gap_size)/4
 
 def calc_L1_msd(dbp,hb,hr,del_hb,f,b):
     L_bsh = calc_L_bsh(del_hb,hb,hr)
     k_a = calc_k_a(del_hb, dbp, hb, hr, f)
     k_d = calc_k_d(del_hb,hb,hr)
     k_f = calc_k_f(f)
+    f = f/(10**6) #convert to MHz
     return L_bsh+k_a+k_d*np.log10(dbp/1000)+k_f*np.log10(f)-9*np.log10(b)
 
 def calc_L_bsh(del_hb,hb,hr):
@@ -262,17 +273,18 @@ def calc_L_bsh(del_hb,hb,hr):
     return -18*np.log10(1+del_hb)
 
 def calc_k_a(del_hb, dbp, hb, hr, f):
-    if (hb>hr and f>2000):
+    f_th = 2000*10**6
+    if (hb>hr and f>f_th):
         return 71.4
-    if (hb<=hr and f>2000 and dbp>=500):
+    if (hb<=hr and f>f_th and dbp>=500):
         return 73-0.8*del_hb
-    if (hb<=hr and f>2000 and dbp<500):
+    if (hb<=hr and f>f_th and dbp<500):
         return 73-1.6*del_hb*(dbp/1000)
-    if (hb>hr and f<=2000):
+    if (hb>hr and f<=f_th):
         return 54
-    if (hb<=hr and f<=2000 and dbp>=500):
+    if (hb<=hr and f<=f_th and dbp>=500):
         return 54-0.8*del_hb
-    if (hb<=hr and f<=2000 and dbp<500):
+    if (hb<=hr and f<=f_th and dbp<500):
         return 54-1.6*del_hb*(dbp/1000)
     
 def calc_k_d(del_hb,hb,hr):
@@ -281,8 +293,10 @@ def calc_k_d(del_hb,hb,hr):
     return 18-15*(del_hb/hr)
 
 def calc_k_f(f):
-    if f>2000:
+    f_th = 2000*10**6
+    if f>f_th:
         return -8
+    f = f/(10**6) #convert to MHz
     return -4+1.5*((f/925)-1)
 
 def calc_L2_msd(dbp,del_hb,b,lamda,f,hb,hr):
@@ -305,6 +319,7 @@ def calc_delhu(b,lamda, dbp):
     return 10**(-np.log10(np.sqrt(b/lamda))-(np.log10(dbp)/9)+(10/9)*np.log10(b/2.35))
 
 def calc_delhl(b,f):
+    f = f/(10**6) #convert to MHz
     numerator = 0.00023*b**2-0.1827*b-9.4978
     denominator = (np.log10(f))**2.938
     return (numerator/denominator) + 0.000781*b + 0.06923
