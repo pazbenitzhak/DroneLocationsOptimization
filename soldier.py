@@ -48,8 +48,8 @@ class soldier:
         soldiers_placements = []
         for i in range(-max_dist_from_comm, max_dist_from_comm):
             for j in range(-max_dist_from_comm, max_dist_from_comm):
-                if (0<=comm_x<5000 and 0<=comm_y<5000) and (i**2+j**2<=max_dist_from_comm**2) \
-                                                            and block[comm_x+i, comm_y+j]:
+                if (0<=i+comm_x<5000 and 0<=j+comm_y<5000) and (i**2+j**2<=max_dist_from_comm**2) \
+                                                            and (block[comm_x+i, comm_y+j]==1):
                     #NPV: if (x,y) in block
                     soldiers_placements.append((comm_x+i, comm_y+j))
         placements_num = len(soldiers_placements)

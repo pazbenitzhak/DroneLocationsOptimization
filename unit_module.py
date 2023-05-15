@@ -97,7 +97,7 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
                 #we took an inner ring and outer ring (dist+-1) to get approximate points
                 #that would represent the dist passed by the commander
                     #NPV: if (x,y) in block
-                    if block[x,y]: #True - it's in a white valid pixel
+                    if block[x,y]==1: #True - it's in a white valid pixel
                         if quarter_2:
                             possible_locations_q_2.append((x,y))
                         else: #must be quarter 4
@@ -108,7 +108,7 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
                 #we took an inner ring and outer ring (dist+-1) to get approximate points
                 #that would represent the dist passed by the commander
                     #NPV: if (x,y) in block
-                    if block[x,y]: #True - it's in a white valid pixel
+                    if block[x,y]==1: #True - it's in a white valid pixel
                         if quarter_2:
                             possible_locations_q_2.append((x,y))
                         else: #must be quarter 4
@@ -120,7 +120,7 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
                 #we took an inner ring and outer ring (dist+-1) to get approximate points
                 #that would represent the dist passed by the commander
                     #NPV: if (x,y) in block
-                    if block[x,y]: #True - it's in a white valid pixel
+                    if block[x,y]==1: #True - it's in a white valid pixel
                         if quarter_1:
                             possible_locations_q_1.append((x,y))
                         else: #must be quarter 3
@@ -132,7 +132,7 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
                 #we took an inner ring and outer ring (dist+-1) to get approximate points
                 #that would represent the dist passed by the commander
                     #NPV: if (x,y) in block
-                    if block[x,y]: #True - it's in a white valid pixel
+                    if block[x,y]==1: #True - it's in a white valid pixel
                         if quarter_1:
                             possible_locations_q_1.append((x,y))
                         else: #must be quarter 3

@@ -5,7 +5,7 @@ import drones as drones
 import unit_module
 import numpy as np
 
-drone_step_size = 20
+drone_step_size = 5 #the smallest step
 map_size = 5000
 
 def calculate_next_locs_data(unit,drone,surf):
@@ -27,51 +27,62 @@ def get_poss_drone_locs(drone, surf):
     valid_locs = surface.surface.getDroneMap(surf)
     x,y = drones.drone.getLocation(drone)
     points = [(x,y)]
+    first_drone_step = drone_step_size
+    second_drone_step = 2*drone_step_size
+    third_drone_step = 4*drone_step_size
+    first_step_points = add_locs_for_step_size(x,y,first_drone_step,valid_locs)
+    points.extend(first_step_points)
+    second_step_points = add_locs_for_step_size(x,y,second_drone_step,valid_locs)
+    points.extend(second_step_points)
+    third_step_points = add_locs_for_step_size(x,y,third_drone_step,valid_locs)
+    points.extend(third_step_points)
+    return points
+
+
+def add_locs_for_step_size(x,y,step_size,valid_locs):
+    points_list = []
     diag_step_size = int(drone_step_size*(1/np.sqrt(2)))
     if (x-drone_step_size>=0):
         point = (x-drone_step_size,y)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points.append((x-drone_step_size,y))
+            points_list.append((x-drone_step_size,y))
     if (x+drone_step_size<map_size):
         point = (x+drone_step_size,y)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points.append(point)
+            points_list.append(point)
     if (y-drone_step_size>=0):
         point = (x,y-drone_step_size)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points.append(point)
+            points_list.append(point)
     if (y+drone_step_size<map_size):
         point = (x,y+drone_step_size)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points.append(point)
+            points_list.append(point)
     if (x+diag_step_size<map_size and y+diag_step_size<map_size):
         point = (x+diag_step_size,y+diag_step_size)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points.append(point)
+            points_list.append(point)
     if (x+diag_step_size<map_size and y-diag_step_size>=0):
         point = (x+diag_step_size,y-diag_step_size)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points.append(point)
+            points_list.append(point)
     if (x-diag_step_size>=0 and y-diag_step_size>=0):
         point = (x-diag_step_size,y-diag_step_size)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points.append(point)
+            points_list.append(point)
     if (x-diag_step_size>=0 and y+diag_step_size<map_size):
         point = (x-diag_step_size,y+diag_step_size)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points.append(point)
-    return points
-
-
-
+            points_list.append(point)
+    return points_list
 
 def collect_soldier_snr(sold,drone,surf,location):
     return wp.calc_SNR(sold, drone, surf,location)

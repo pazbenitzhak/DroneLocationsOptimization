@@ -18,6 +18,8 @@ import numpy as np
 c = 3*10**8 # speed of light, m/s
 upsilon = 0.0417
 chi = 0.1
+avg_soldier_height = 1.5 #carries equipment on the back
+
 
 def los_path_loss(sold, drone, surf, freq, drone_pos_loc):
     #distance between soldier and drone
@@ -29,10 +31,12 @@ def los_path_loss(sold, drone, surf, freq, drone_pos_loc):
     drone_loc = drone_pos_loc
     hb = drones.drone.getHeight(drone)
     sold_loc = soldier.soldier.getLocation(sold)
-    hm = surface.surface.getDSM(surf)[sold_loc]
+    hm = surface.surface.getDSM(surf)[sold_loc]+avg_soldier_height
     vertical_dist = np.square(hb-hm)
     horizontal_dist = np.square(drone_loc[0]-sold_loc[0])+np.square(drone_loc[1]-sold_loc[1])
     dist = np.sqrt(vertical_dist+horizontal_dist)
+    #print("h (in meters) = " +str(hb))
+    #print("d(u,n) (in meters) = " +str(dist))
     wave_length = c/freq #m
     rbp = (4*hb*hm)/wave_length
     lbp = np.abs(20*np.log10((wave_length**2)/(8*np.pi*hb*hm)))
@@ -70,7 +74,6 @@ def nlos_path_loss(sold, drone, surf, freq,drone_pos_loc):
     ds = (wave_length*dist**2)/(del_hb**2)
     L_rts = calc_Lrts(street_width, freq, del_hm, phi)
     L_msd = calc_Lmsd(dist,horizontal_dist,ds,del_hb,wave_length,hb,hr,freq,b)
-    print("lrts: " +str(L_rts)+"   lmsd:  " + str(L_msd))
     if ((L_msd+L_rts)<=0):
         return L_bf
     return L_bf+L_rts+L_msd
@@ -90,20 +93,16 @@ def calc_Lmsd(d,l,ds,del_hb,lamda,hb,hr,f,b):
     L1_msd_d = calc_L1_msd(d,hb,hr,del_hb,f,b)
     L2_msd_d = calc_L2_msd(d,del_hb,b,lamda,f,hb,hr)
     if (l>ds and dh_bp>0):
-        print("lmsd = " + str(-np.tanh((np.log10(d)-np.log10(dbp))/chi)*(L1_msd_d-l_mid)+l_mid))
         return -np.tanh((np.log10(d)-np.log10(dbp))/chi)*(L1_msd_d-l_mid)+l_mid
     if (l<=ds and dh_bp>0):
-        print("lmsd = " + str(np.tanh((np.log10(d)-np.log10(dbp))/chi)*(L2_msd_d-l_mid)+l_mid))
         return np.tanh((np.log10(d)-np.log10(dbp))/chi)*(L2_msd_d-l_mid)+l_mid
     if (dh_bp==0):
-        print("lmsd = " + str(L2_msd_d))
         return L2_msd_d
     if (l>ds and dh_bp<0):
-        print("lmsd = " + str(L1_msd_d-np.tanh((np.log10(d)-np.log10(dbp))/zeta)*(l_upp-l_mid)-l_upp+l_mid))
         return L1_msd_d-np.tanh((np.log10(d)-np.log10(dbp))/zeta)*(l_upp-l_mid)-l_upp+l_mid
     if (l<=ds and dh_bp<0):
-        print("lmsd = " + str(L2_msd_d+np.tanh((np.log10(d)-np.log10(dbp))/zeta)*(l_mid-l_low)+l_mid-l_low))
         return L2_msd_d+np.tanh((np.log10(d)-np.log10(dbp))/zeta)*(l_mid-l_low)+l_mid-l_low
+    return 0
 
 
 def calc_Lori(phi):
@@ -176,7 +175,6 @@ def find_street_width(sold_loc,block_num, dsm_blocks,lines,img):
 def in_line(x, y, img):
     #we know that all triplets in the dsm_image contain the same value
     #so we can just slice on the first index
-    print("(x,y) = " +str(x) +str(y))
     if img[x,y,0]==254 or img[x,y,0]==253:
         return True
     return False

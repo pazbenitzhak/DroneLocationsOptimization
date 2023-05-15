@@ -12,7 +12,7 @@ class surface:
     def __init__(self, dtm_path,sold_th,drone_th):
         # blocks - cluster of lists of valid locations for soldiers
         # drone_map - matrix of valid locations for drones where 1 = valid
-        self.dsm, self.dsm_blocks, self.dsm_city_grid, self.dtm, self.diffs_dsm_dtm, \
+        self.dsm, self.dsm_blocks, self.dsm_city_grid, self.dsm_img, self.dtm, self.diffs_dsm_dtm, \
             self.blocks, self.white_block_indexes, self.drone_map = loadSurface(dtm_path,sold_th,drone_th)
 
     def getDSM(self):
@@ -35,12 +35,18 @@ class surface:
     
     def getDSMBlocks(self):
         return self.dsm_blocks
+    
+    def getDSMLines(self):
+        return self.dsm_city_grid
+    
+    def getDSMImage(self):
+        return self.dsm_img
 
 def loadSurface(dtm_path,sold_th, drone_th):
     """dsm_dataset = rasterio.open(dsm_path)
     dsm = dsm_dataset.read()
     dsm = dsm[0][0:5000,5000:]"""
-    dsm, dsm_blocks, dsm_city_grid = loadGeneratedDSM()
+    dsm, dsm_blocks, dsm_city_grid, dsm_img = loadGeneratedDSM()
     dtm_dataset = rasterio.open(dtm_path)
     dtm = dtm_dataset.read()
     dtm = dtm[0][0:5000,5000:]
@@ -50,7 +56,7 @@ def loadSurface(dtm_path,sold_th, drone_th):
     indices = np.where(dsm==0)
     # a list of list because there should be backwards compatibility
     white_block_indexes = list(zip(indices[0], indices[1])) #NPV: there is only one block in the new DSM implementation
-    white_block = (dsm==0)
+    white_block = (dsm==0).astype(int) #1 if a valid point to be for a soldier
     drone_map = (diffs<=drone_th).astype(int)
     drone_map_zeros = np.argwhere(drone_map==0)
     for ind in drone_map_zeros:
@@ -60,7 +66,8 @@ def loadSurface(dtm_path,sold_th, drone_th):
                     and ((x_add)**2 + (y_add)**2 <= 10**2):
                     drone_map[ind[0]+x_add,ind[1]+y_add] = 0
                     #TODO: for presentation
-    return dsm, dsm_blocks, dsm_city_grid, dtm, diffs, white_block, white_block_indexes, drone_map
+    return dsm, dsm_blocks, dsm_city_grid, dsm_img, dtm, diffs, white_block,\
+          white_block_indexes, drone_map
 
 def findSoldiersValidLocations(diffs, threshold):
     condition = (diffs<=threshold).astype(int)
@@ -167,9 +174,14 @@ def loadGeneratedDSM():
         x2, y2 = point[1]
         line_width = random.choice([100, 50, 70])
         lines[count][2] = line_width
-        draw.line((x1, y1, x2, y2), fill='white', width=line_width)
-        draw2 = ImageDraw.Draw(img2)
-        draw2.line((x1, y1, x2, y2), fill='white', width=line_width)
+        if count%2==0:
+            draw.line((x1, y1, x2, y2), fill=(254,254,254), width=line_width)
+            draw2 = ImageDraw.Draw(img2)
+            draw2.line((x1, y1, x2, y2), fill=(254,254,254), width=line_width)
+        else: 
+            draw.line((x1, y1, x2, y2), fill=(253,253,253), width=line_width)
+            draw2 = ImageDraw.Draw(img2)
+            draw2.line((x1, y1, x2, y2), fill=(253,253,253), width=line_width)
         count+=1
     
     ##
@@ -222,10 +234,11 @@ def loadGeneratedDSM():
     #get a dsm array
     img_arr = np.array(img)
 
-    dsm_arr = np.zeros(shape=(5000,5000))
-
+    dsm_arr = np.zeros(shape=(5000,5000),dtype=int)
     zero_pixels = np.all(img_arr == [0, 0, 0], axis=2)
-    dsm_arr[zero_pixels] = 50
+    dsm_arr[zero_pixels] = 45
+    #TODO: ask MERAV, because we changed it. It's due to the fact that our NLOS model
+    #includes only over-rooftops cases, so all building need to be below drones' height
     fifty_pixels = np.all(img_arr == [50, 50, 50], axis=2)
     dsm_arr[fifty_pixels] = 30
     one_hundred_pixels = np.all(img_arr == [100, 100, 100], axis=2)
@@ -234,8 +247,13 @@ def loadGeneratedDSM():
     dsm_arr[one_hundred_fifty_pixels] = 10
     two_hundred_pixels = np.all(img_arr == [200, 200, 200], axis=2)
     dsm_arr[two_hundred_pixels] = 5
+    white_pixels = np.all(img_arr == [253, 253, 253], axis=2)
+    dsm_arr[white_pixels] = 0
+    white_pixels = np.all(img_arr == [254, 254, 254], axis=2)
+    dsm_arr[white_pixels] = 0
     white_pixels = np.all(img_arr == [255, 255, 255], axis=2)
     dsm_arr[white_pixels] = 0
+    
 
 
     # convert the RGB values to grayscale values using the luminosity method
@@ -251,4 +269,4 @@ def loadGeneratedDSM():
     # save the grayscale image
     img.save('gray_rectangles.png')
     img2.save('lines.png')
-    return dsm_arr, dsm_blocks, lines
+    return dsm_arr, dsm_blocks, lines, img_arr
