@@ -16,7 +16,7 @@ import drone_manage
 
 #all distances are in meters
 time_interval = 1
-drone_threshold = 50 #m
+drone_threshold = 150 #m
 soldier_threshold = 0.5 #m
 soldier_bw = 10 #TODO: change it to a proper value
 noise = 9 #TODO: change it to a proper value
@@ -80,13 +80,13 @@ def main():
     while(time_module.time_module.getTime(time)<int(end_time)):
         #TODO: measure current SNR
         avg_SNR_drones = []
-        for i in range(drones_num):
+        for i in range(int(drones_num)):
             SNR_i = 0
             drone_loc = drones.drone.getLocation(drones_list[i])
             unit_i_solds = unit_module.unit_module.getSoldiers(units[i])
             sold_num = unit_module.unit_module.getSoldiersNum(units[i])
             for sold in unit_i_solds:
-                SNR_i += drone_manage.collect_soldier_snr(sold,drone,surface_obj,drone_loc)
+                SNR_i += drone_manage.collect_soldier_snr(sold,drones_list[i],surface_obj,drone_loc)
             SNR_i = SNR_i/sold_num
             avg_SNR_drones.append(SNR_i)
         #update soldiers

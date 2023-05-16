@@ -31,13 +31,22 @@ class soldier:
         quarter = unit_module.calculateQuarter(comm_x, comm_y, x_0, y_0)
         possible_locations = unit_module.findPossibleLocations(x_0,y_0,block,dist,quarter)
         is_not_valid = 1
+        min_dist_from_cmm = np.infty
+        backup_loc_min = (0,0) #setup for case where all possible locations are not <= max_dist_from_comm
         while(is_not_valid):
             arr_len = len(possible_locations)
+            if arr_len == 0: #in first itertation, arr_len will always be greater that 0
+                self.setNewLocation(backup_loc_min[0], backup_loc_min[1])
+                return backup_loc_min[0], backup_loc_min[1] #if none of possible locations apply demands, then the minimum distance will be taken
             index = random.randint(0,arr_len-1)
             new_loc = possible_locations[index] #tuple: x, y
-            if (new_loc[0]-comm_x)**2 + (new_loc[1]-comm_y)**2 <= max_dist_from_comm**2:
+            new_dist_from_cmm = (new_loc[0]-comm_x)**2 + (new_loc[1]-comm_y)**2 
+            if new_dist_from_cmm<= max_dist_from_comm**2:
                 is_not_valid = 0
             else:
+                if new_dist_from_cmm <= min_dist_from_cmm:
+                    min_dist_from_cmm = new_dist_from_cmm
+                    backup_loc_min = (possible_locations[index])
                 possible_locations.remove(new_loc)
         self.setNewLocation(new_loc[0],new_loc[1])
         return new_loc[0], new_loc[1]

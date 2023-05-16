@@ -3,7 +3,7 @@ import surface as surface
 import numpy as np
 import unit_module as unit_module
 
-drone_height = 50 #m
+drone_height = 75 #m
 
 class drone:
     x_loc = 0
