@@ -19,9 +19,10 @@ c = 3*10**8 # speed of light, m/s
 upsilon = 0.0417
 chi = 0.1
 avg_soldier_height = 1.5 #carries equipment on the back
+drone_height = 50
+block_size = 100
 
-
-def los_path_loss(sold, drone, surf, freq, drone_pos_loc):
+def los_path_loss(sold, surf, freq, drone_pos_loc):
     #distance between soldier and drone
     #hb - height of drone
     #hm - height of soldier
@@ -29,12 +30,14 @@ def los_path_loss(sold, drone, surf, freq, drone_pos_loc):
     #TODO: figure out what the frequency should be - MERAV ANSWER: cellular frequency
     #we assume the wave velocity is at the speed of light
     drone_loc = drone_pos_loc
-    hb = drones.drone.getHeight(drone)
+    dtm = surface.surface.getDTM(surf)
+    hb =  dtm[drone_pos_loc]+drone_height
     sold_loc = soldier.soldier.getLocation(sold)
     hm = surface.surface.getDSM(surf)[sold_loc]+avg_soldier_height
     vertical_dist = np.square(hb-hm)
     horizontal_dist = np.square(drone_loc[0]-sold_loc[0])+np.square(drone_loc[1]-sold_loc[1])
     dist = np.sqrt(vertical_dist+horizontal_dist)
+    horizontal_dist = np.sqrt(horizontal_dist)
     #print("h (in meters) = " +str(hb))
     #print("d(u,n) (in meters) = " +str(dist))
     wave_length = c/freq #m
@@ -46,14 +49,16 @@ def los_path_loss(sold, drone, surf, freq, drone_pos_loc):
         coeff = 40
     return lbp+6+coeff*np.log10(dist/rbp)
 
-def nlos_path_loss(sold, drone, surf, freq,drone_pos_loc):
+def nlos_path_loss(sold, surf, freq,drone_pos_loc):
     drone_loc = drone_pos_loc
-    hb = drones.drone.getHeight(drone)
+    dtm = surface.surface.getDTM(surf)
+    hb =  dtm[drone_pos_loc]+drone_height
     sold_loc = soldier.soldier.getLocation(sold)
-    hm = surface.surface.getDSM(surf)[sold_loc]+1.5
+    hm = surface.surface.getDSM(surf)[sold_loc]+avg_soldier_height
     vertical_dist = np.square(hb-hm)
     horizontal_dist = np.square(drone_loc[0]-sold_loc[0])+np.square(drone_loc[1]-sold_loc[1])
     dist = np.sqrt(vertical_dist+horizontal_dist)
+    horizontal_dist = np.sqrt(horizontal_dist)
     #street_width = surface.surface.
     # our world/map is straightened so we can just take 'regular' arctan
     phi = np.arctan2(np.abs(drone_loc[1]-sold_loc[1]),np.abs(drone_loc[0]-sold_loc[0]))
@@ -66,7 +71,7 @@ def nlos_path_loss(sold, drone, surf, freq,drone_pos_loc):
     img = surface.surface.getDSMImage(surf)
     # (gray_value,rect_size,gap_size)
     street_width = find_street_width(sold_loc,block_num,dsm_blocks,lines,img)
-    hr = calc_hr(sold_loc, block_num, dsm_blocks)
+    hr = calc_hr(sold_loc, block_num, dsm_blocks,surf)
     b = calc_b(sold_loc, block_num, dsm_blocks)
     del_hm = hr-hm
     del_hb = hb-hr
@@ -84,6 +89,8 @@ def calc_Lrts(w,f,del_hm,phi):
     return -8.2-10*np.log10(w)+10*np.log10(f)+20*np.log10(del_hm)+L_ori
 
 def calc_Lmsd(d,l,ds,del_hb,lamda,hb,hr,f,b):
+    #we calculate l as the horizontal distance since it only goes inside a log and thus
+    #it does not make a big difference compared to the actual l
     dbp = np.abs(del_hb)*np.sqrt(l/lamda)
     l_upp = calc_L1_msd(dbp,hb,hr,del_hb,f,b) #this is L1_msd_dbp
     l_low = calc_L2_msd(dbp,del_hb,b,lamda,f,hb,hr) #this is L2_msd_dbp
@@ -204,29 +211,41 @@ def calc_border(rect_size, gap_size):
             else: #4 rectangles in a row
                 return 4*rect_size + 3*gap_size
 
-def calc_hr(sold_loc, block_num, dsm_blocks):
+def calc_hr(sold_loc, block_num, dsm_blocks, surf):
     x, y = sold_loc
     block_len = 100
     gray_value, rect_size, gap_size = dsm_blocks[block_num]
     border = calc_border(rect_size,gap_size)
-    block_height = from_gray_to_height(gray_value)
+    block_init_x = block_size*(block_num%50)
+    block_init_y = block_size*(block_num//50)
+    block_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
+    #block_height = from_gray_to_height(gray_value)
     if (x%block_len<border and y%block_len<border):
         return block_height
     right_height = -1
     down_height = -1
     if (x%block_len>=block_len-border and block_num%50!=49): #block not in rightmost column
         right_gray_value, right_rect_size, right_gap_size = dsm_blocks[block_num+1]
-        right_height = from_gray_to_height(right_gray_value)
+        block_init_x = block_size*((block_num+1)%50)
+        block_init_y = block_size*((block_num+1)//50)
+        right_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
+        #right_height = from_gray_to_height(right_gray_value)
     if (y%block_len>=block_len-border and block_num<2450): #block not in last row
         down_gray_value, down_rect_size, down_gap_size = dsm_blocks[block_num+50]
-        down_height = from_gray_to_height(down_gray_value)
+        block_init_x = block_size*((block_num+50)%50)
+        block_init_y = block_size*((block_num+50)//50)
+        down_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
+        #down_height = from_gray_to_height(down_gray_value)
     if (right_height==-1): #only need to average down_height
         return (block_height+down_height)/2
     if (down_height==-1): #only need to average right_height
         return (block_height+right_height)/2
     #need to average the 3 of them and the down right one
     down_right_gray_value, down_right_rect_size, down_right_gap_size = dsm_blocks[block_num+51]
-    down_right_height = from_gray_to_height(down_right_gray_value)
+    #down_right_height = from_gray_to_height(down_right_gray_value)
+    block_init_x = block_size*((block_num+51)%50)
+    block_init_y = block_size*((block_num+51)//50)
+    down_right_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
     return (block_height+down_height+right_height+down_right_height)/4
 
 def calc_b(sold_loc, block_num, dsm_blocks):
@@ -302,9 +321,19 @@ def calc_L2_msd(dbp,del_hb,b,lamda,f,hb,hr):
     return -10*np.log10(Q_m**2)
 
 def calc_Q_m(dbp,del_hb,b,lamda,f,hb,hr):
+    print("dbp: "+str(dbp))
+    print("del_hb: "+str(del_hb))
+    print("b: "+str(b))
+    print("lamda: "+str(lamda))
+    print("f: "+str(f))
+    print("hb: "+str(hb))
+    print("hr: "+str(hr))
     delhu = calc_delhu(b,lamda, dbp)
+    print("delhu: " +str(delhu))
     delhl = calc_delhl(b,f)
+    print("delhl: " +str(delhl))
     theta = np.arctan2(del_hb/b,1)
+    print("theta: "+str(theta))
     rho = np.sqrt(b**2+del_hb**2)
     if (hb>hr+delhu):
         return 2.35*((del_hb/dbp)*np.sqrt(b/lamda))**0.9
@@ -325,7 +354,7 @@ def calc_delhl(b,f):
 def from_gray_to_height(gray):
     match gray:
         case 0:
-            return 50
+            return 45
         case 50:
             return 30
         case 100:

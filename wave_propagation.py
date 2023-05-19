@@ -16,6 +16,7 @@ percent = 5 #TODO: check with Merav about the final value
     #Nu = 5*10**(-11)
     #Nu = 6.57*10**(-11)
     #Nu = 7.96*10**(-12)
+drone_height = 50
 
 def calc_SNR(sold, drone, surf,drone_pos_loc):
     user_equip_noise = soldier.soldier.getSoldierEquipNoise(sold) #in DB
@@ -29,13 +30,13 @@ def calc_SNR(sold, drone, surf,drone_pos_loc):
     #print("NU = "+str(Nu))
     ptx = drones.drone.getPtx(drone) #Watt
     freq = drones.drone.getFreq(drone) #in Hz
-    if is_line_of_sight(sold, drone, surf):
+    if is_line_of_sight(sold, surf, drone_pos_loc):
         print("in LOS: (x,y) = "+ str(soldier.soldier.getLocation(sold)))
-        path_loss = curr_prop.los_path_loss(sold,drone,surf,freq,drone_pos_loc)
+        path_loss = curr_prop.los_path_loss(sold,surf,freq,drone_pos_loc)
         #print("LOS pathloss = " +str(path_loss)+" DB")
     else:
         print("in NLOS: (x,y) = "+ str(soldier.soldier.getLocation(sold)))
-        path_loss = curr_prop.nlos_path_loss(sold,drone,surf,freq,drone_pos_loc)
+        path_loss = curr_prop.nlos_path_loss(sold,surf,freq,drone_pos_loc)
         #print("LOS pathloss = " +str(path_loss)+" DB")
     s_path = (1/total_soldiers_served)*ptx*10**(-path_loss/10) #bu/B = 1/total_soldiers_served
     snr = s_path/Nu
@@ -107,9 +108,11 @@ def is_line_of_sight_2(sold, drone, surf):
     return True
 
 
-def is_line_of_sight(sold,drone,surf):
-    x_drone, y_drone = drones.drone.getLocation(drone)
-    z_drone =  drones.drone.getHeight(drone)
+def is_line_of_sight(sold,surf,drone_pos_loc):
+    x_drone, y_drone = drone_pos_loc
+    #we changed it so it can fit calculations which are not related to a the drone's current location - in the dynamic and static options 
+    dtm = surface.surface.getDTM(surf)
+    z_drone =  dtm[drone_pos_loc]+drone_height
     x_sold, y_sold = soldier.soldier.getSoldierLocation(sold)
     z_sold = avg_soldier_height+surface.surface.getDSM(surf)[x_sold, y_sold]
     line_points = bresenham_line(x_drone, y_drone, x_sold, y_sold)

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
 Image.MAX_IMAGE_PIXELS = 100000000
+dsm_blocks_num = 2500
+dsm_block_size = 100
 
 class surface:
 
@@ -14,7 +16,8 @@ class surface:
         # drone_map - matrix of valid locations for drones where 1 = valid
         self.dsm, self.dsm_blocks, self.dsm_city_grid, self.dsm_img, self.dtm, self.diffs_dsm_dtm, \
             self.blocks, self.white_block_indexes, self.drone_map = loadSurface(dtm_path,sold_th,drone_th)
-
+        self.charging_points = [(1000*i,1000*j) for i in range(1,5) for j in range(1,5)]
+    
     def getDSM(self):
         return self.dsm
 
@@ -41,22 +44,30 @@ class surface:
     
     def getDSMImage(self):
         return self.dsm_img
+    
+    def getChargePoints(self):
+        return self.charging_points
 
 def loadSurface(dtm_path,sold_th, drone_th):
     """dsm_dataset = rasterio.open(dsm_path)
     dsm = dsm_dataset.read()
     dsm = dsm[0][0:5000,5000:]"""
-    dsm, dsm_blocks, dsm_city_grid, dsm_img = loadGeneratedDSM()
+    dsm_addition, dsm_blocks, dsm_city_grid, dsm_img = loadGeneratedDSM()
     dtm_dataset = rasterio.open(dtm_path)
     dtm = dtm_dataset.read()
     dtm = dtm[0][0:5000,5000:]
+    dtm_max_for_mask = getDTMMask(dtm)
+    dtm[dsm_addition!=0] = 0
+    dtm_max_for_mask[dsm_addition==0] = 0
+    dtm += dtm_max_for_mask
+    dsm = dtm+dsm_addition
     diffs = dsm-dtm
     """cond = (diffs<=sold_th).astype(int)
     blocks_array = blocks.block.classifyRouteBlocks(cond)"""
-    indices = np.where(dsm==0)
+    indices = np.where(dsm_addition==0)
     # a list of list because there should be backwards compatibility
     white_block_indexes = list(zip(indices[0], indices[1])) #NPV: there is only one block in the new DSM implementation
-    white_block = (dsm==0).astype(int) #1 if a valid point to be for a soldier
+    white_block = (dsm_addition==0).astype(int) #1 if a valid point to be for a soldier
     drone_map = (diffs<=drone_th).astype(int)
     drone_map_zeros = np.argwhere(drone_map==0)
     for ind in drone_map_zeros:
@@ -68,6 +79,16 @@ def loadSurface(dtm_path,sold_th, drone_th):
                     #TODO: for presentation
     return dsm, dsm_blocks, dsm_city_grid, dsm_img, dtm, diffs, white_block,\
           white_block_indexes, drone_map
+
+def getDTMMask(dtm):
+    dtm_mask = np.copy(dtm)
+    for block_num in range(dsm_blocks_num):
+        block_init_x = 100*(block_num%50)
+        block_init_y = 100*(block_num//50)
+        block_dtm = dtm[block_init_x:block_init_x+dsm_block_size-1,block_init_y:block_init_y+dsm_block_size-1]
+        max_dtm_val = np.max(block_dtm)
+        dtm_mask[block_init_x:block_init_x+dsm_block_size-1,block_init_y:block_init_y+dsm_block_size-1] = max_dtm_val
+    return dtm_mask
 
 def findSoldiersValidLocations(diffs, threshold):
     condition = (diffs<=threshold).astype(int)
