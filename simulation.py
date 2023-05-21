@@ -11,8 +11,8 @@ import numpy as np
 import drone_manage
 import random
 import opt_algo as op
-
-#run command: python simulation.py dtm_1m_utm18_e_10_104.tif 1 5 1 200
+#dtm_1m_utm18_e_10_104.tif
+#run command: python simulation.py dtm_data.npy 1 5 1 200
 #u.e. spec: https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2507
 
 #all distances are in meters
@@ -21,7 +21,7 @@ drone_threshold = 50 #m
 soldier_threshold = 0.5 #m
 soldier_bw = 10 #TODO: change it to a proper value
 noise = 9 #TODO: change it to a proper value
-max_dist_from_comm = 100 #m
+max_dist_from_comm = 200 #m
 drone_bw = 10*10**6 ##10MHZ in specification (article), in Hz
 ptx = 0.2511886432 #24 DBm, 0.2511886432 Watt, according to article
 initial_drone_freq = 2*10**9 #2000MHz/2GHz
@@ -29,7 +29,7 @@ map_size = 5000
 ellipse_a = 100
 ellipse_b = 200
 block_size = 100
-init_batt = 50
+init_batt = 50/100
 
 def main():
     dtm_path, units_num, soldiers_in_unit_num, drones_num, end_time = sys.argv[1], sys.argv[2],\
@@ -69,6 +69,16 @@ def main():
                 copy_img[s_x,s_y] = [0,128,0] #green
             if i==4:
                 copy_img[s_x,s_y] = [184,134,11] #dark golden rod
+            if i==5:
+                copy_img[s_x,s_y] = [124,252,0] #lawn green
+            if i==6:
+                copy_img[s_x,s_y] = [143,188,143] #dark sea green
+            if i==7:
+                copy_img[s_x,s_y] = [47,79,79] #dark slate gray
+            if i==8:
+                copy_img[s_x,s_y] = [100,149,237] #corn flower blue
+            if i==9:
+                copy_img[s_x,s_y] = [139,69,19] #saddle brown
             units_soldiers.append(sold)
     #for Algorithm 0 every unit has only one drone attached to it
     drones_list = []
@@ -86,12 +96,14 @@ def main():
         #create a dynamic elliptic route
         ellip_cent_x, ellip_cent_y, theta = adjust_elliptic_param([unit_x,unit_y])
         drones_dynamic_routes.append(create_elliptic_route(ellip_cent_x, ellip_cent_y, ellipse_a, ellipse_b, theta))
+        #print("drones_dynamic_routes : " +str(drones_dynamic_routes[i]) )
     curr_time = time_module.time_module.getTime(time)
     cum_avg_algo_SNR = [[] for i in range(drones_num)]
     cum_avg_static_SNR = [[] for i in range(drones_num)]
     cum_avg_dynamic_SNR = [[] for i in range(drones_num)]
     while(curr_time<int(end_time)):
         #TODO: measure current SNR
+        print("curr time: " + str(curr_time))
         for i in range(drones_num):
             #update battery
             drones.drone.updateBattery(drones_list[i])
@@ -114,7 +126,8 @@ def main():
             #calculate SNR for other soldiers
             for sold in unit_i_solds:
                 algo_SNR_i += drone_manage.collect_soldier_snr(sold,drones_list[i],surface_obj,drone_loc)
-                print("drones_static_locations[i]: "+str(drones_static_locations[i]))
+                #print("drones_algo_locations: "+str(drone_loc))
+                #print("drones_static_locations[i]: "+str(drones_static_locations[i]))
                 static_SNR_i += drone_manage.collect_soldier_snr(sold,drones_list[i],surface_obj,drones_static_locations[i])
                 copy_img[drones_static_locations[i][0],drones_static_locations[i][1]] = [255,20,147] #deep pink
                 dyn_route_len = len(drones_dynamic_routes[i])
@@ -144,6 +157,16 @@ def main():
                     copy_img[s_x,s_y] = [0,128,0] #green
                 if i==4:
                     copy_img[s_x,s_y] = [184,134,11] #dark golden rod
+                if i==5:
+                    copy_img[s_x,s_y] = [124,252,0] #lawn green
+                if i==6:
+                    copy_img[s_x,s_y] = [143,188,143] #dark sea green
+                if i==7:
+                    copy_img[s_x,s_y] = [47,79,79] #dark slate gray
+                if i==8:
+                    copy_img[s_x,s_y] = [100,149,237] #corn flower blue
+                if i==9:
+                    copy_img[s_x,s_y] = [139,69,19] #saddle brown
                 i+=1
                 #copy_img[sold_x,sold_y] = [255,0,0] #red
 
@@ -156,7 +179,9 @@ def main():
             snr_param.append(snrs)
             drones_locations.append(locations)
             drones_batteries.append(battery)
-        print("SNRS: " +str(snrs))
+        #print("SNRS: " +str(snrs[0]))
+        if has_nan_value(snrs):
+            break
         #optimization algorithm
         locations = op.optimization_algorithm(snr_param,drones_locations,drones_batteries)
         #update drones (data from op algo)
@@ -170,6 +195,8 @@ def main():
         #increment time
         time_module.time_module.updateTime(time)
         curr_time = time_module.time_module.getTime(time)
+    #print("drones_dynamic_routes : " +str(drones_dynamic_routes[0]) )
+    print("drones_algo_locations: "+str(drone_loc))    
     plt.imshow(copy_img)
     plt.show()
     times = range(curr_time)
@@ -294,7 +321,19 @@ def adjust_elliptic_param(comm_loc):
         theta = 0
         dyn_ell_cent[1] = map_size-ellipse_a-10 #we're taking it a little bit more inside
     
-    return dyn_ell_cent[0], dyn_ell_cent[0], theta
+    return dyn_ell_cent[0], dyn_ell_cent[1], theta
+
+
+def has_nan_value(lst):
+    for sublist in lst:
+        for i in sublist:
+            if np.isnan(i):
+                print("There is a NaS value.")
+                return True
+    #print("There is no NaS value.")
+    return False
+
+
 
 
 """ def main1():

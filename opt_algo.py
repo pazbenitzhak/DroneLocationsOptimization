@@ -42,11 +42,15 @@ def optimization_algorithm(snrs_list,locations,batteries):
         snr_weights = sigmoid(np.array(option_after_th))
         #need to average snr_weights
         snr_weights_av = np.array([np.mean(weight_list) for weight_list in snr_weights])
-        closest_charge_point = np.array([find_closest_charge_point(x,y) for (x,y) in optional_locations])
+        closest_charge_point = np.array([(0,0) for loc in optional_locations])
+        #closest_charge_point = np.array([find_closest_charge_point(x,y) for (x,y) in optional_locations]) 16 charge points at 1000-1000, etc
         dist_from_charge_point = np.sqrt(np.square(optional_locations[:,0]-closest_charge_point[:,0])\
         +np.square(optional_locations[:,0]-closest_charge_point[:,0]))
         dist_weights = batt_weight_by_batt_usage(dist_from_charge_point,batteries[i])
+        #print("dist weight: "+ str(dist_weights))
+        #print("snr weights: " + str(snr_weights))
         value_func = snr_weights_av+dist_weights
+        #print("value_func: " + str(value_func))
         max_val_index = np.argmax(value_func)
         chosen_point = optional_locations[max_val_index]
         chosen_locations.append(chosen_point)
@@ -82,7 +86,8 @@ def batt_weight_by_batt_usage(dist,batt):
     #if the condition is satisfied: give high weight to distance
     #10 chosen beacuase expected value for snrs' average s in the range of 0.1-0.9
     #If not: give low weight to distance so the algorithm will only look at the snrs
-    batt_weights = (batt-batt_consump_needed<batt_th_added).astype(int)*10
+    batt_weights = (batt-batt_consump_needed<batt_th_added).astype(int)*100*(batt-batt_consump_needed)
+    #print("batt-batt_consump_needed: " +str(batt-batt_consump_needed))
     return batt_weights
 
 def batt_weight_2():

@@ -31,11 +31,11 @@ def calc_SNR(sold, drone, surf,drone_pos_loc):
     ptx = drones.drone.getPtx(drone) #Watt
     freq = drones.drone.getFreq(drone) #in Hz
     if is_line_of_sight(sold, surf, drone_pos_loc):
-        print("in LOS: (x,y) = "+ str(soldier.soldier.getLocation(sold)))
+        #print("in LOS: (x,y) = "+ str(soldier.soldier.getLocation(sold)))
         path_loss = curr_prop.los_path_loss(sold,surf,freq,drone_pos_loc)
         #print("LOS pathloss = " +str(path_loss)+" DB")
     else:
-        print("in NLOS: (x,y) = "+ str(soldier.soldier.getLocation(sold)))
+        #print("in NLOS: (x,y) = "+ str(soldier.soldier.getLocation(sold)))
         path_loss = curr_prop.nlos_path_loss(sold,surf,freq,drone_pos_loc)
         #print("LOS pathloss = " +str(path_loss)+" DB")
     s_path = (1/total_soldiers_served)*ptx*10**(-path_loss/10) #bu/B = 1/total_soldiers_served

@@ -55,24 +55,24 @@ def get_poss_drone_locs(drone, surf):
 
 def add_locs_for_step_size(x,y,step_size,valid_locs):
     points_list = []
-    diag_step_size = int(drone_step_size*(1/np.sqrt(2)))
-    if (x-drone_step_size>=0):
-        point = (x-drone_step_size,y)
+    diag_step_size = int(step_size*(1/np.sqrt(2)))
+    if (x-step_size>=0):
+        point = (x-step_size,y)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
-            points_list.append((x-drone_step_size,y))
-    if (x+drone_step_size<map_size):
-        point = (x+drone_step_size,y)
-        # if 1 then the location is valid due to the construction of the drone map
-        if valid_locs[point]==1:
-            points_list.append(point)
-    if (y-drone_step_size>=0):
-        point = (x,y-drone_step_size)
+            points_list.append((x-step_size,y))
+    if (x+step_size<map_size):
+        point = (x+step_size,y)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
             points_list.append(point)
-    if (y+drone_step_size<map_size):
-        point = (x,y+drone_step_size)
+    if (y-step_size>=0):
+        point = (x,y-step_size)
+        # if 1 then the location is valid due to the construction of the drone map
+        if valid_locs[point]==1:
+            points_list.append(point)
+    if (y+step_size<map_size):
+        point = (x,y+step_size)
         # if 1 then the location is valid due to the construction of the drone map
         if valid_locs[point]==1:
             points_list.append(point)

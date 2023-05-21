@@ -38,10 +38,11 @@ class unit_module:
         comm_location = self.getCommanderLoc()
         curr_comm_direc = self.commander_direction
         possible_locations = findPossibleLocations(comm_location[0],comm_location[1],block,dist,curr_comm_direc)
-        x_poss, y_poss = possible_locations[0] #for example, only to calculate quarter
-        self.commander_direction = calculateQuarter(comm_location[0],comm_location[1],x_poss, y_poss)
+        x_poss, y_poss = possible_locations[random.randint(0,len(possible_locations)-1)] #for example, only to calculate quarter
+        self.commander_direction = calculateQuarter(x_poss, y_poss,comm_location[0],comm_location[1]) #adjust general quarter function to commander
+        print("commander quarter: "+ str(self.commander_direction))
         locs_len = len(possible_locations)
-        print("locs_len: " + str(locs_len))
+        #print("locs_len: " + str(locs_len))
         index = random.randint(0,locs_len-1)
         self.comm_x, self.comm_y = possible_locations[index]
         return possible_locations[index]
@@ -76,8 +77,8 @@ class unit_module:
         return self.comm_x, self.comm_y
 
 def findPossibleLocations(x_0,y_0,block,dist,quarter):
-    print("dist: " + str(dist))
-    print("x_0: " +str(x_0) + " y_0: " +str(y_0))
+    #print("dist: " + str(dist))
+    #print("x_0: " +str(x_0) + " y_0: " +str(y_0))
     possible_locations = []
     possible_locations_q_1 = []
     possible_locations_q_2 = []
@@ -141,17 +142,19 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
     #need to pick a number: 1-8 for opposite quarter, 9-24 & 25-40 for complementary quarters and 41-100 for the sqme quarter
     while True:
         num = random.randint(1,100)
+        print("num: "+str(num))
         #if (41<=num<=100): quarter stays the same
         if (25<=num<=40):
             quarter = (quarter%4)+1
         elif (9<=num<=24):
             quarter = quarter-1
             if quarter==0: # 1-> 4
-                quarter = 4
+                quarter += 4
         elif (1<=num<=8):
             quarter = (quarter+2) % 4
             if quarter==0: # 2-> 4
-                quarter = 4
+                quarter += 4
+        print("chosen qurter: "+str(quarter))
         match quarter:
             case 1:
                 if (len(possible_locations_q_1)>0):
@@ -169,13 +172,15 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
                 if (len(possible_locations_q_4)>0):
                     possible_locations = possible_locations_q_4
                     break
-    print("possible_locations: " +str(possible_locations))
+    #print("possible_locations: " +str(possible_locations))
     return possible_locations
 
 
 def calculateQuarter(x_comm, y_comm, x_sold, y_sold):
     if x_comm==x_sold: #avoid division by zero
         angle = np.pi/2
+        if y_comm==y_sold:
+            return 4
     else:
         slope = (y_comm-y_sold)/(x_comm-x_sold)
         angle = np.arctan(slope)

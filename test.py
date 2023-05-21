@@ -22,11 +22,21 @@ import matplotlib.pyplot as plt
 # print("size of spots: " +str(len(clas)))
 # print("ok")
 
-t = surface.surface('dsm_1m_utm18_e_10_104.tif','dtm_1m_utm18_e_10_104.tif',0.5,50)
-diff = t.getDiffs()
-print(diff[5,7])
-cond = (diff<=50).astype(int)
-cond *= 255
+# t = surface.surface('dsm_1m_utm18_e_10_104.tif','dtm_1m_utm18_e_10_104.tif',0.5,50)
+# diff = t.getDiffs()
+# print(diff[5,7])
+# cond = (diff<=50).astype(int)
+# cond *= 255
 
-plt.imshow(cond, cmap='gray')
-plt.show()
+# plt.imshow(cond, cmap='gray')
+# plt.show()
+
+import rasterio
+import numpy as np
+
+dtm_path = "dtm_1m_utm18_e_10_104.tif"
+# Read the TIFF file
+dtm_dataset = rasterio.open(dtm_path)
+dtm = dtm_dataset.read()
+
+np.save('dtm_data.npy', dtm)

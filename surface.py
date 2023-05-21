@@ -53,14 +53,16 @@ def loadSurface(dtm_path,sold_th, drone_th):
     dsm = dsm_dataset.read()
     dsm = dsm[0][0:5000,5000:]"""
     dsm_addition, dsm_blocks, dsm_city_grid, dsm_img = loadGeneratedDSM()
-    dtm_dataset = rasterio.open(dtm_path)
-    dtm = dtm_dataset.read()
+    #dtm_dataset = rasterio.open(dtm_path)
+    #dtm = dtm_dataset.read()
+    dtm = np.load('dtm_data.npy')
     dtm = dtm[0][0:5000,5000:]
     dtm_max_for_mask = getDTMMask(dtm)
     dtm[dsm_addition!=0] = 0
     dtm_max_for_mask[dsm_addition==0] = 0
     dtm += dtm_max_for_mask
-    dsm = dtm+dsm_addition
+    dsm = dsm_addition
+    #dsm = dtm+dsm_addition
     diffs = dsm-dtm
     """cond = (diffs<=sold_th).astype(int)
     blocks_array = blocks.block.classifyRouteBlocks(cond)"""
@@ -104,7 +106,7 @@ def loadGeneratedDSM():
     draw = ImageDraw.Draw(img)
 
     # define the size of the rectangles and the gap between them
-    rect_size_list =[10, 20, 50]
+    rect_size_list =[10, 20, 50, 10, 20, 10, 20, 10, 20]
     gray_value_list = [0, 50, 100, 150, 200, 50, 100, 150, 200]
     #gap_size = 10
 

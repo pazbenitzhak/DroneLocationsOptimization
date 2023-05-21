@@ -24,6 +24,8 @@ class soldier:
         velocity_val = random.gauss(avg_velocity,velocity_deviation)
         #velocity_direc = random.gauss(unit_module.getCommandDirec(),angle_deviation)
         dist = velocity_val*time_module.time_module.getTimeInterval(time)
+        if dist<0:
+            dist = 0
         unit = self.getSoldierUnit()
         block = unit_module.unit_module.getBlock(unit)
         x_0,y_0 = self.getSoldierLocation()
