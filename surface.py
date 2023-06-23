@@ -56,13 +56,18 @@ def loadSurface(dtm_path,sold_th, drone_th):
     #dtm_dataset = rasterio.open(dtm_path)
     #dtm = dtm_dataset.read()
     dtm = np.load('dtm_data.npy')
-    dtm = dtm[0][0:5000,5000:]
+    dtm = dtm[0][5000:,5000:]
     dtm_max_for_mask = getDTMMask(dtm)
     dtm[dsm_addition!=0] = 0
     dtm_max_for_mask[dsm_addition==0] = 0
     dtm += dtm_max_for_mask
     dsm = dsm_addition
-    #dsm = dtm+dsm_addition
+    #print(dtm)
+    # print("---------------------------------------------------------------------------------------")
+    # print(dsm)
+    dsm = dtm+dsm_addition
+    # print("---------------------------------------------------------------------------------------")
+    # print(dsm)
     diffs = dsm-dtm
     """cond = (diffs<=sold_th).astype(int)
     blocks_array = blocks.block.classifyRouteBlocks(cond)"""
@@ -257,7 +262,7 @@ def loadGeneratedDSM():
     #get a dsm array
     img_arr = np.array(img)
 
-    dsm_arr = np.zeros(shape=(5000,5000),dtype=int)
+    dsm_arr = np.zeros(shape=(5000,5000),dtype=float)
     zero_pixels = np.all(img_arr == [0, 0, 0], axis=2)
     dsm_arr[zero_pixels] = 45
     #TODO: ask MERAV, because we changed it. It's due to the fact that our NLOS model

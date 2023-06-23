@@ -65,9 +65,10 @@ class drone:
         return one_value_indices[ind][0], one_value_indices[ind][1]
 
 
-    def setNewLocation(self,x,y): #deterministic
+    def setNewLocation(self,x,y, surf): #deterministic
         self.x_loc = x
         self.y_loc = y
+        self.updateHeight(x, y, surf)
         return x,y
 
     def getUnits(self): 

@@ -40,7 +40,7 @@ class unit_module:
         possible_locations = findPossibleLocations(comm_location[0],comm_location[1],block,dist,curr_comm_direc)
         x_poss, y_poss = possible_locations[random.randint(0,len(possible_locations)-1)] #for example, only to calculate quarter
         self.commander_direction = calculateQuarter(x_poss, y_poss,comm_location[0],comm_location[1]) #adjust general quarter function to commander
-        print("commander quarter: "+ str(self.commander_direction))
+        #print("commander quarter: "+ str(self.commander_direction))
         locs_len = len(possible_locations)
         #print("locs_len: " + str(locs_len))
         index = random.randint(0,locs_len-1)
@@ -142,7 +142,7 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
     #need to pick a number: 1-8 for opposite quarter, 9-24 & 25-40 for complementary quarters and 41-100 for the sqme quarter
     while True:
         num = random.randint(1,100)
-        print("num: "+str(num))
+        #print("num: "+str(num))
         #if (41<=num<=100): quarter stays the same
         if (25<=num<=40):
             quarter = (quarter%4)+1
@@ -154,7 +154,7 @@ def findPossibleLocations(x_0,y_0,block,dist,quarter):
             quarter = (quarter+2) % 4
             if quarter==0: # 2-> 4
                 quarter += 4
-        print("chosen qurter: "+str(quarter))
+        #print("chosen qurter: "+str(quarter))
         match quarter:
             case 1:
                 if (len(possible_locations_q_1)>0):

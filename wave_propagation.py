@@ -139,7 +139,10 @@ def is_line_of_sight(sold,surf,drone_pos_loc):
         dsm_val = surface.surface.getDSM(surf)[x_point,y_point] #height in the pixel
         z_point = z_sold+(coeff*(tx+ty)/2)*z_direc
         # case where tx=ty=0 works because 1.5>0
-        if (z_point<=(1+(percent/100))*dsm_val):
+        #print("z point: " + str(z_point))
+        #print("dsm val: " + str(dsm_val))
+        #print("(1+(percent/100))*dsm_val: " + str((1+(percent/100))*dsm_val))
+        if (z_point<=(1+(-percent/100))*dsm_val):
            return False
     return True
 

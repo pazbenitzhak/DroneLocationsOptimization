@@ -73,8 +73,11 @@ def nlos_path_loss(sold, surf, freq,drone_pos_loc):
     street_width = find_street_width(sold_loc,block_num,dsm_blocks,lines,img)
     hr = calc_hr(sold_loc, block_num, dsm_blocks,surf)
     b = calc_b(sold_loc, block_num, dsm_blocks)
-    del_hm = hr-hm
-    del_hb = hb-hr
+    del_hm = max(hr-hm, 3.5) #The max delta between a building of height 5 to a soldier of height 1.5
+    if del_hm<0:
+        print("hm: " +str(hm))
+        print("hr: " +str(hr))
+    del_hb = max(hb-hr, 5) #The max delta between a building of height 45 to a drone of height 50
     wave_length = c/freq
     ds = (wave_length*dist**2)/(del_hb**2)
     L_rts = calc_Lrts(street_width, freq, del_hm, phi)
@@ -250,10 +253,10 @@ def calc_hr(sold_loc, block_num, dsm_blocks, surf):
         return (block_height+right_height)/2
     #need to average the 3 of them and the down right one
     down_right_gray_value, down_right_rect_size, down_right_gap_size = dsm_blocks[block_num+51]
-    #down_right_height = from_gray_to_height(down_right_gray_value)
     block_init_x = block_size*((block_num+51)%50)
     block_init_y = block_size*((block_num+51)//50)
     down_right_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
+    #down_right_height = from_gray_to_height(down_right_gray_value)
     return (block_height+down_height+right_height+down_right_height)/4
 
 def calc_b(sold_loc, block_num, dsm_blocks):
