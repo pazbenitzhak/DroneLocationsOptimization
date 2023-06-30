@@ -111,9 +111,11 @@ def loadGeneratedDSM():
     draw = ImageDraw.Draw(img)
 
     # define the size of the rectangles and the gap between them
+    #rect_size_list =[50]
     rect_size_list =[10, 20, 50, 10, 20, 10, 20, 10, 20]
-    gray_value_list = [0, 50, 100, 150, 200, 50, 100, 150, 200]
-    #gap_size = 10
+    #gray_value_list = [0]
+    gray_value_list = [0, 50, 100, 150, 200]
+    #gap_size = 5
 
     # divide the image into 2500 equal squares (blocks)
     num_blocks = 50
