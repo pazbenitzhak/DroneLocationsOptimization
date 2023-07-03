@@ -18,10 +18,27 @@ The code could be found in 2 main directories inside the src directory:
    This module is not in use in the current implementation of the project.
 
 # The Algorithm
+The algorithm considers 2 main factors:
+1. **SNR (Signal to Noise Ration) values** - The SNR each soldier has with the drone.
+2. **Battery** - The current battery the drone has.
+
+The algorithm receives a list of SNR values the drone would have with each soldier in case of moving to each possible point.
+The drone can advance within a varying distance of 5, 10 or 20 meters, and in 8 different directions (each direction is 45 degrees from its neighbors).
+It can also stay in its current location. Therefore there are 25 possible points for advancing.
+The algorithm has a list of 25 lists of SNR values (the smaller lists are in the length of the unit's size - number of soldiers + 1 for the commander).
+The algorith then throws away all lists where the number of SNR values under the threshold is maximal (the threshold is set to 8 dB).
+
+After that, the algorithm passes each list's SNR values in a weight function which returns a number between 0 and 1 and averages those values.
+Another weight function is calculated according to the current battery and then summed to the first expression. In short, the second weight function
+will be different than zero only if the drone won't have sufficient battery to get to the charging point (we set it to be th pixel (0,0)). In that case,
+it returns values which would be around 15 (thus overshadowing the first weight function).
+
+The algorithm returns the point which maximies the expressions' sum.
 
 # How to use
 First, you must clone the repository to its local workstation.
 There is no need in build or downloading anything but the Python packages inside the files.
 Python3.11 is recommend for running the code.
 
-The next step is putting
+The next step is loading the DTM layer.
+Suitable such layers, in the format of a TIFF image, could be found in the Canadian government database, which consists of different areas in canada and
