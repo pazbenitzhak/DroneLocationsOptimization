@@ -49,7 +49,7 @@ The algorithm returns the point which maximies the expressions' sum.
 4. **Load the DTM layer** - Open a python interpreter directory where the DTM layer TIFF image is saved  and do the following:
 
    '''python
-   import numpy as np
+   'import numpy as np'
    np.save("dtm_data.npy", dir)
 
    
