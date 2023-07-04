@@ -46,7 +46,7 @@ The algorithm returns the point which maximies the expressions' sum.
    https://open.canada.ca/data/en/dataset/957782bf-847c-4644-a757-e383c0057995
    Notice that you whould look for a TIFF image with the terms "1m" and "dtm" in its name.
 
-4. **Load the DTM layer** - Open a python interpreter directory where the DTM layer TIFF image is saved  and do the following:
+3. **Load the DTM layer** - Open a python interpreter directory where the DTM layer TIFF image is saved and do the following:
 
    Import numpy:
    ```
@@ -58,5 +58,17 @@ The algorithm returns the point which maximies the expressions' sum.
    ```
    np.save("dtm_data.npy", dir)
    ```
+
+   Copy the npy file to the same directory where the simulation.py is in.
+
+4. Run the code:
+   ```
+   python simulation.py
+   ```
+
+5. Get the results, which include an average SNRs histogram, an efficiency graph and a max duration of communication cut histogram.
+
+**NOTE:** Right now the code is configured to run 100 runs of the simulation, with 10 soldiers in a unit
+         and various battery values. You can configure that and other parameters in the first lines of the simulation.py file.
 
    
