@@ -36,9 +36,20 @@ it returns values which would be around 15 (thus overshadowing the first weight 
 The algorithm returns the point which maximies the expressions' sum.
 
 # How to use
-First, you must clone the repository to its local workstation.
-There is no need in build or downloading anything but the Python packages inside the files.
-Python3.11 is recommend for running the code.
+1. **Clone the repository** to its local workstation.
+   There is no need in build or downloading anything but the Python packages inside the files.
+   Python3.11 is recommend for running the code.
 
-The next step is loading the DTM layer.
-Suitable such layers, in the format of a TIFF image, could be found in the Canadian government database, which consists of different areas in canada and
+2. **Find a DTM layer**, in particular one in a resolution of 1m.
+   Suitable such layers, in the format of a TIFF image, could be found in the **HRDEM** Canadian government database, which consists of different areas in canada and
+   is available in the next link:
+   https://open.canada.ca/data/en/dataset/957782bf-847c-4644-a757-e383c0057995
+   Notice that you whould look for a TIFF image with the terms "1m" and "dtm" in its name.
+
+4. **Load the DTM layer** - Open a python interpreter directory where the DTM layer TIFF image is saved  and do the following:
+
+   '''python
+   import numpy as np
+   np.save("dtm_data.npy", dir)
+
+   
