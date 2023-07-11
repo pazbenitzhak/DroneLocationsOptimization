@@ -6,15 +6,15 @@ and the drone should move along to provide the best communication coverage for t
 The ground force consists of several soldiers and transfers its communications through a single drone.
 
 # Structure
-The code could be found in inside the src directory and can be viewed in three parts:
-1. **sim** - includes all the modules of the participating objects in the simulation: drones, soldiers and units.
+The code can be viewed in three parts:
+1. **Simulation Modules** - includes all the modules of the participating objects in the simulation: drones, soldiers and units.
    Other relevant modules that helped the creation of the simulation include the surface and the time.
    It also includes the simulation.py file, which is **the file needed to be run in order to execute the entire
    process** 
-3. **alg_calc** - includes all modules that help collect the data for the algorithm (drone_manage), and all the modules
+3. **Algorithm Calculation Modules** - includes all modules that help collect the data for the algorithm (drone_manage), and all the modules
    which calculate the necessary data for the algorithm: current_propagation, wave_propagation.
    It also uncludes the module which executes the algorithm.
-4. **utils** - includes the blocks module which calculates blocks in the map which a human can walk at.
+4. **Utils** - includes the blocks module which calculates blocks in the map which a human can walk at.
    This module is not in use in the current implementation of the project.
 
 # The Algorithm
