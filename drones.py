@@ -18,7 +18,6 @@ class drone:
         self.x_loc, self.y_loc= self.placeDrone(x_unit, y_unit,surface_object)
         self.bandwidth = bw
         self.height = drone_height+surface.surface.getDTM(surface_object)[x_unit,y_unit]
-        #MERAV: maybe 50 above dtm and need to avoid collusions with buildings
         self.connected_units = units
         self.ptx = ptx
         self.frequency = freq

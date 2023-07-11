@@ -20,9 +20,7 @@ class soldier:
     def updateNewLocation(self,max_dist_from_comm,time): #random
         avg_velocity =  unit_module.avg_vel #m/sec, i.e. 5km/h
         velocity_deviation =  unit_module.vel_dev #chosen so the velocity ranges are between 0-9.5 km/h
-        #angle_deviation = 1.18 # chosen so the direction ranges are between commander_dirc+-pi
         velocity_val = random.gauss(avg_velocity,velocity_deviation)
-        #velocity_direc = random.gauss(unit_module.getCommandDirec(),angle_deviation)
         dist = velocity_val*time_module.time_module.getTimeInterval(time)
         if dist<0:
             dist = 0

@@ -27,7 +27,6 @@ def los_path_loss(sold, surf, freq, drone_pos_loc):
     #hb - height of drone
     #hm - height of soldier
     #lambda - frequency of drone
-    #TODO: figure out what the frequency should be - MERAV ANSWER: cellular frequency
     #we assume the wave velocity is at the speed of light
     drone_loc = drone_pos_loc
     dtm = surface.surface.getDTM(surf)
@@ -38,9 +37,7 @@ def los_path_loss(sold, surf, freq, drone_pos_loc):
     horizontal_dist = np.square(drone_loc[0]-sold_loc[0])+np.square(drone_loc[1]-sold_loc[1])
     dist = np.sqrt(vertical_dist+horizontal_dist)
     horizontal_dist = np.sqrt(horizontal_dist)
-    #print("h (in meters) = " +str(hb))
-    #print("d(u,n) (in meters) = " +str(dist))
-    wave_length = c/freq #m
+    wave_length = c/freq #meters
     rbp = (4*hb*hm)/wave_length
     lbp = np.abs(20*np.log10((wave_length**2)/(8*np.pi*hb*hm)))
     if (dist<=rbp):
@@ -59,7 +56,6 @@ def nlos_path_loss(sold, surf, freq,drone_pos_loc):
     horizontal_dist = np.square(drone_loc[0]-sold_loc[0])+np.square(drone_loc[1]-sold_loc[1])
     dist = np.sqrt(vertical_dist+horizontal_dist)
     horizontal_dist = np.sqrt(horizontal_dist)
-    #street_width = surface.surface.
     # our world/map is straightened so we can just take 'regular' arctan
     phi = np.arctan2(np.abs(drone_loc[1]-sold_loc[1]),np.abs(drone_loc[0]-sold_loc[0]))
     if phi>90:
@@ -69,7 +65,6 @@ def nlos_path_loss(sold, surf, freq,drone_pos_loc):
     dsm_blocks = surface.surface.getDSMBlocks(surf)
     lines = surface.surface.getDSMLines(surf)
     img = surface.surface.getDSMImage(surf)
-    # (gray_value,rect_size,gap_size)
     street_width = find_street_width(sold_loc,block_num,dsm_blocks,lines,img)
     hr = calc_hr(sold_loc, block_num, dsm_blocks,surf)
     b = calc_b(sold_loc, block_num, dsm_blocks)
@@ -89,8 +84,6 @@ def nlos_path_loss(sold, surf, freq,drone_pos_loc):
 def calc_Lrts(w,f,del_hm,phi):
     L_ori = calc_Lori(phi)
     f = f/(10**6) #convert to MHz
-    #print("w: " + str(w))
-    #print("del_hm: " + str(del_hm))
     return -8.2-10*np.log10(w)+10*np.log10(f)+20*np.log10(del_hm)+L_ori
 
 def calc_Lmsd(d,l,ds,del_hb,lamda,hb,hr,f,b):
@@ -224,7 +217,6 @@ def calc_hr(sold_loc, block_num, dsm_blocks, surf):
     block_init_x = block_size*(block_num%50)
     block_init_y = block_size*(block_num//50)
     block_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
-    #block_height = from_gray_to_height(gray_value)
     if block_height == 0: #in line
         block_height = from_gray_to_height(gray_value) #wer'e taking the height of the block prior to adding a line
     if (x%block_len<border and y%block_len<border):
@@ -236,17 +228,11 @@ def calc_hr(sold_loc, block_num, dsm_blocks, surf):
         block_init_x = block_size*((block_num+1)%50)
         block_init_y = block_size*((block_num+1)//50)
         right_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
-        #right_height = from_gray_to_height(right_gray_value)
-        #if right_height == 0: #in line
-            #right_height = from_gray_to_height(gray_value) #wer'e taking the height of the block prior to adding a line
     if (y%block_len>=block_len-border and block_num<2450): #block not in last row
         down_gray_value, down_rect_size, down_gap_size = dsm_blocks[block_num+50]
         block_init_x = block_size*((block_num+50)%50)
         block_init_y = block_size*((block_num+50)//50)
         down_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
-        #down_height = from_gray_to_height(down_gray_value)
-        #if down_height == 0: #in line
-            #down_height = from_gray_to_height(gray_value) #wer'e taking the height of the block prior to adding a line
     if (right_height==-1): #only need to average down_height
         return (block_height+down_height)/2
     if (down_height==-1): #only need to average right_height
@@ -256,7 +242,6 @@ def calc_hr(sold_loc, block_num, dsm_blocks, surf):
     block_init_x = block_size*((block_num+51)%50)
     block_init_y = block_size*((block_num+51)//50)
     down_right_height = surface.surface.getDSM(surf)[block_init_x,block_init_y]
-    #down_right_height = from_gray_to_height(down_right_gray_value)
     return (block_height+down_height+right_height+down_right_height)/4
 
 def calc_b(sold_loc, block_num, dsm_blocks):
@@ -329,23 +314,12 @@ def calc_k_f(f):
 
 def calc_L2_msd(dbp,del_hb,b,lamda,f,hb,hr):
     Q_m = calc_Q_m(dbp,del_hb,b,lamda,f,hb,hr)
-    #print("Q_m: "+str(Q_m))
     return -10*np.log10(Q_m**2)
 
 def calc_Q_m(dbp,del_hb,b,lamda,f,hb,hr):
-    # print("dbp: "+str(dbp))
-    # print("del_hb: "+str(del_hb))
-    # print("b: "+str(b))
-    # print("lamda: "+str(lamda))
-    # print("f: "+str(f))
-    # print("hb: "+str(hb))
-    # print("hr: "+str(hr))
     delhu = calc_delhu(b,lamda, dbp)
-    #print("delhu: " +str(delhu))
     delhl = calc_delhl(b,f)
-    #print("delhl: " +str(delhl))
     theta = np.arctan2(del_hb/b,1)
-    #print("theta: "+str(theta))
     rho = np.sqrt(b**2+del_hb**2)
     if (hb>hr+delhu):
         return 2.35*((del_hb/dbp)*np.sqrt(b/lamda))**0.9

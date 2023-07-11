@@ -49,28 +49,16 @@ class surface:
         return self.charging_points
 
 def loadSurface(dtm_path,sold_th, drone_th):
-    """dsm_dataset = rasterio.open(dsm_path)
-    dsm = dsm_dataset.read()
-    dsm = dsm[0][0:5000,5000:]"""
     dsm_addition, dsm_blocks, dsm_city_grid, dsm_img = loadGeneratedDSM()
-    #dtm_dataset = rasterio.open(dtm_path)
-    #dtm = dtm_dataset.read()
-    dtm = np.load('dtm_data.npy')
+    dtm = np.load(dtm_path)
     dtm = dtm[0][5000:,5000:]
     dtm_max_for_mask = getDTMMask(dtm)
     dtm[dsm_addition!=0] = 0
     dtm_max_for_mask[dsm_addition==0] = 0
     dtm += dtm_max_for_mask
     dsm = dsm_addition
-    #print(dtm)
-    # print("---------------------------------------------------------------------------------------")
-    # print(dsm)
     dsm = dtm+dsm_addition
-    # print("---------------------------------------------------------------------------------------")
-    # print(dsm)
     diffs = dsm-dtm
-    """cond = (diffs<=sold_th).astype(int)
-    blocks_array = blocks.block.classifyRouteBlocks(cond)"""
     indices = np.where(dsm_addition==0)
     # a list of list because there should be backwards compatibility
     white_block_indexes = list(zip(indices[0], indices[1])) #NPV: there is only one block in the new DSM implementation
@@ -83,7 +71,6 @@ def loadSurface(dtm_path,sold_th, drone_th):
                 if (0<=ind[0]+x_add<5000 and 0<=ind[1]+y_add<5000) and (drone_map[ind[0]+x_add,ind[1]+y_add]==0) \
                     and ((x_add)**2 + (y_add)**2 <= 10**2):
                     drone_map[ind[0]+x_add,ind[1]+y_add] = 0
-                    #TODO: for presentation
     return dsm, dsm_blocks, dsm_city_grid, dsm_img, dtm, diffs, white_block,\
           white_block_indexes, drone_map
 
@@ -109,21 +96,13 @@ def loadGeneratedDSM():
 
     # create an ImageDraw object
     draw = ImageDraw.Draw(img)
-
-    # define the size of the rectangles and the gap between them
-    #rect_size_list =[50]
     rect_size_list =[10, 20, 50, 10, 20, 10, 20, 10, 20]
-    #gray_value_list = [0]
     gray_value_list = [0, 50, 100, 150, 200]
-    #gap_size = 5
 
     # divide the image into 2500 equal squares (blocks)
     num_blocks = 50
     block_size = img.width // num_blocks
     dsm_blocks = [[0,0,0] for i in range(2500)]
-    # (gray_value,rect_size,gap_size)
-    # calculate the number of rectangles that fit in a row/column of a block
-    #num_rect = (block_size - gap_size) // (rect_size + gap_size)
 
     # draw random gray rectangles in each block
     for i in range(num_blocks):
@@ -135,7 +114,6 @@ def loadGeneratedDSM():
             block_y2 = block_y1 + block_size
             gray_value = random.choice(gray_value_list)
             dsm_blocks[50*i+j][0] = gray_value
-            #gray_value = 240
             rect_size = random.choice(rect_size_list)
             dsm_blocks[50*i+j][1] = rect_size
             gap_size = random.randint(5, 10)
@@ -155,27 +133,10 @@ def loadGeneratedDSM():
                     color = (gray_value, gray_value, gray_value)
                     draw.rectangle((rect_x1, rect_y1, rect_x2, rect_y2), fill=color)
 
-    # choose 10 random pairs of points
-    ##points = []
-    ##for i in range(10):
-    ##    if i%2==0:
-    ##        x1 = 0
-    ##        y1 = random.randint(0, img.height - 1)
-    ##        x2 = img.width - 1
-    ##        y2 = random.randint(0, img.height - 1)
-    ##        points.append(((x1, y1), (x2, y2)))
-    ##    else: 
-    ##        x1 = random.randint(0, img.width - 1)
-    ##        y1 = 0
-    ##        x2 = random.randint(0, img.width - 1)
-    ##        y2 = img.height - 1
-    ##        points.append(((x1, y1), (x2, y2)))
-    ##
     points = []
     x_range = img.width // 10
     y_range = img.height // 10
     lines = [[0,0,0] for i in range(10)]
-    #lines: (x1,x2,width) or (y1,y2,width) - depending on oddity/even
     for i in range(10):
         if i%2==0:
             x1 = 0
@@ -213,52 +174,6 @@ def loadGeneratedDSM():
             draw2 = ImageDraw.Draw(img2)
             draw2.line((x1, y1, x2, y2), fill=(253,253,253), width=line_width)
         count+=1
-    
-    ##
-    ### Define the parameters for the rectangles
-    ##num_rectangles = 10
-    ##min_size = 200
-    ##max_size = 800
-    ##min_pos = 0
-    ##max_pos = 4900
-    ##
-    ### Create an ImageDraw object
-    ##draw = ImageDraw.Draw(img)
-    ##
-    ### Add the rectangles to the image
-    ##rectangles = []
-    ##for i in range(num_rectangles):
-    ##    # Generate random parameters for the rectangle
-    ##    x1 = random.randint(min_pos, max_pos)
-    ##    y1 = random.randint(min_pos, max_pos)
-    ##    width = random.randint(min_size, max_size)
-    ##    height = random.randint(min_size, max_size)
-    ##    x2 = x1 + width
-    ##    y2 = y1 + height
-    ##    
-    ##    # Check for overlap with existing rectangles
-    ##    overlaps = True
-    ##    while overlaps:
-    ##        overlaps = False
-    ##        for rect in rectangles:
-    ##            if x1 < rect[2] and x2 > rect[0] and y1 < rect[3] and y2 > rect[1]:
-    ##                overlaps = True
-    ##                x1 = random.randint(min_pos, max_pos)
-    ##                y1 = random.randint(min_pos, max_pos)
-    ##                width = random.randint(min_size, max_size)
-    ##                height = random.randint(min_size, max_size)
-    ##                x2 = x1 + width
-    ##                y2 = y1 + height
-    ##    
-    ##    # Add the rectangle to the list of rectangles
-    ##    rectangles.append((x1, y1, x2, y2))
-    ##    
-    ##    # Draw the rectangle on the image
-    ##    draw.rectangle((x1, y1, x2, y2), fill=(255, 255, 255))
-    ##
-    ### Save the modified image
-    ##img.save('modified_image.jpg')
-    # save the images
 
     #creating a new array and converting colors to heights so we
     #get a dsm array
@@ -267,7 +182,6 @@ def loadGeneratedDSM():
     dsm_arr = np.zeros(shape=(5000,5000),dtype=float)
     zero_pixels = np.all(img_arr == [0, 0, 0], axis=2)
     dsm_arr[zero_pixels] = 45
-    #TODO: ask MERAV, because we changed it. It's due to the fact that our NLOS model
     #includes only over-rooftops cases, so all building need to be below drones' height
     fifty_pixels = np.all(img_arr == [50, 50, 50], axis=2)
     dsm_arr[fifty_pixels] = 30
@@ -285,17 +199,6 @@ def loadGeneratedDSM():
     dsm_arr[white_pixels] = 0
     
 
-
-    # convert the RGB values to grayscale values using the luminosity method
-    """gray = np.dot(arr[...,:3], [0.21, 0.72, 0.07])
-
-    # normalize the grayscale values to the range [0, 255]
-    gray = (gray / np.max(gray)) * 255
-
-    # convert the grayscale values to integers
-    gray_data_array = gray.astype(np.uint8)
-
-    dsm_array = """
     # save the grayscale image
     img.save('gray_rectangles.png')
     img2.save('lines.png')

@@ -28,21 +28,3 @@ class block:
                         spots.append(spot)
         return spots
 
-#t = surface('dsm_1m_utm18_e_10_104.tif','dtm_1m_utm18_e_10_104.tif')
-#condition = (surface.getDiffs(t)<=0.5).astype(int)
-
-#start = time.time()
-# Example usage
-#photo = [[random.randint(0,1) for j in range(5000)] for i in range(5000)]
-#photo = [
- #  [1, 0, 0, 1, 1, 1, 0],
-  #  [0, 1, 0, 0, 0, 0, 1],
-   # [0, 1, 0, 0, 0, 0, 0],
-    #[1, 1, 0, 1, 1, 1, 1],
-#]
-#photo = condition
-#clas = block.classifyRouteBlocks(photo)
-#print(clas)
-#end = time.time()
-#print("size of spots: " +str(len(clas)))
-#print("ok")
