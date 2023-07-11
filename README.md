@@ -74,6 +74,6 @@ The algorithm returns the point which maximies the expressions' sum.
 7. To get a visualiation of the forces and drones movement, please refer to lines 370-390 in the simulation.py file.
 
 **NOTE:** Right now the code is configured to run 100 runs of the simulation, with 10 soldiers in a unit
-         and various battery values. You can configure that and other parameters in the first lines of the simulation.py file.
+         and various battery values. In the current configuration, 100 runs are expected to run in approximatley 1hr, with a single run runtime of 35-40 seconds. You can configure that and other parameters in the first lines of the simulation.py file.
 
    
