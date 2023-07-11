@@ -12,10 +12,7 @@ import drone_manage
 import random
 import opt_algo as op
 import timeout_decorator
-#dtm_1m_utm18_e_10_104.tif
-#run command: python simulation.py dtm_data.npy 1 5 1 200
 #run command: python3.11 simulation.py
-# cd /Users/raipheterson/Documents/year4/DroneLocationsOptimization
 #u.e. spec: https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2507
 
 #all distances are in meters
