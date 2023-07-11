@@ -68,6 +68,8 @@ The algorithm returns the point which maximies the expressions' sum.
 
 5. Get the results, which include an average SNRs histogram, an efficiency graph and a max duration of communication cut histogram.
 
+6. To get a visualiation of the forces and drones movement, please refer to lines 370-390 in the simulation.py file.
+
 **NOTE:** Right now the code is configured to run 100 runs of the simulation, with 10 soldiers in a unit
          and various battery values. You can configure that and other parameters in the first lines of the simulation.py file.
 
