@@ -38,7 +38,7 @@ The algorithm returns the point which maximies the expressions' sum.
 # How to use
 1. **Clone the repository** to its local workstation.
    There is no need in build or downloading anything but the Python packages inside the files.
-   Python3.11 is recommend for running the code.
+   Python3.11 is recommended for running the code.
 
 2. **Find a DTM layer**, in particular one in a resolution of 1m.
    Suitable such layers, in the format of a TIFF image, could be found in the **HRDEM** Canadian government database, which consists of different areas in canada and
