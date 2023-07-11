@@ -46,7 +46,7 @@ The algorithm returns the point which maximies the expressions' sum.
    https://open.canada.ca/data/en/dataset/957782bf-847c-4644-a757-e383c0057995
    Notice that you whould look for a TIFF image with the terms "1m" and "dtm" in its name.
 
-   Particularly, **such files can be found easily** here: https://ftp.maps.canada.ca/pub/elevation/dem_mne/highresolution_hauteresolution/dtm_mnt/1m/VILLE_MONTREAL/VILLE_MONTREAL/utm18/
+   Particularly, such files can be found easily here: https://ftp.maps.canada.ca/pub/elevation/dem_mne/highresolution_hauteresolution/dtm_mnt/1m/VILLE_MONTREAL/VILLE_MONTREAL/utm18/
    Choose a file that starts with "dtm_1m_utm18_e_...". A file of size over 200M and above is recommended.
 
 4. **Load the DTM layer** - Open a python interpreter directory where the DTM layer TIFF image is saved and do the following:
